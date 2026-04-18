@@ -518,28 +518,37 @@
   const linePresetOptions=(type)=> (type==='material'?currentMaterialsMaster():currentAccessoriesMaster()).map((r,idx)=>`<option value="${idx}">${escapeHtml(r.description)}${r.specification?` • ${escapeHtml(r.specification)}`:''}</option>`).join('');
   const getMeasures=(item)=>{ const w=num(item?.width), h=num(item?.height), d=num(item?.depth), q=Math.max(1,num(item?.qty||1)); return {lm:(w/1000)*q, sqm:((w/1000)*(h/1000))*q, cubic:((w/1000)*(h/1000)*(d/1000))*q}; };
   const laborBasisComputed=(item)=>{ const m=getMeasures(item); if(item?.labor?.basisType==='sqm') return m.sqm; if(item?.labor?.basisType==='pc') return Math.max(1,num(item?.qty||1)); return m.lm; };
-  async function callAppsScript(action,payload={}){
+  async function callAppsScript(action, payload = {}) {
     if(!appSettings.appsScriptUrl) throw new Error('Add your Apps Script URL first in Settings → Data Source.');
-    const res = await fetch(appSettings.appsScriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
-    if(!res.ok) throw new Error('Apps Script request failed.');
+
+    const readActions = ['getMasterData', 'getProjects'];
+
+    if (readActions.includes(action)) {
+      const url = new URL(appSettings.appsScriptUrl);
+      url.searchParams.set('action', action);
+
+      const res = await fetch(url.toString(), {
+        method: 'GET'
+      });
+
+      if (!res.ok) throw new Error('Apps Script GET failed.');
+      return await res.json();
+    }
+
+    const formBody = new URLSearchParams();
+    formBody.set('payload', JSON.stringify({ action, ...payload }));
+
+    const res = await fetch(appSettings.appsScriptUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+      },
+      body: formBody.toString()
+    });
+
+    if (!res.ok) throw new Error('Apps Script POST failed.');
     return await res.json();
   }
-  async function pullMasterData(){
-    try{
-      const data=await callAppsScript('getMasterData',{});
-      if(data.sheetUrl) appSettings.sheetUrl=data.sheetUrl;
-      if(data.categories) appSettings.categoryListText=data.categories.join('\n');
-      if(data.categoryPresets) appSettings.categoryPresetsText=JSON.stringify(data.categoryPresets,null,2);
-      if(data.materials) appSettings.materialMasterJson=JSON.stringify(data.materials);
-      if(data.accessories) appSettings.accessoryMasterJson=JSON.stringify(data.accessories);
-      if(data.clauses) appSettings.clauseLibraryText=(data.clauses||[]).map(x=>`${x.title}::${x.text}`).join('\n---\n');
-      if(data.quickEstimate){ Object.assign(appSettings,data.quickEstimate); }
-      saveAppSettings(); render(); alert('Master data pulled from Apps Script.');
-    }catch(err){ alert(err.message); }
-  }
-  async function pushCurrentProjectToSheet(){ if(!project) return alert('No active project to push.'); try{ await callAppsScript('saveProject',{project}); alert('Current project pushed to Apps Script.'); }catch(err){ alert(err.message); } }
-  async function pullProjectsFromSheet(){ try{ const data=await callAppsScript('getProjects',{}); if(Array.isArray(data.projects)){ localStorage.setItem('moduquote_projects', JSON.stringify(data.projects)); renderSavedProjects(); alert('Projects pulled from Apps Script.'); } else alert('No projects returned by Apps Script.'); }catch(err){ alert(err.message); } }
-
   function companyHeaderHtml(docTitle){
     const name=(appSettings.companyName||'').trim();
     const address=(appSettings.companyAddress||'').trim();
