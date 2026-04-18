@@ -518,37 +518,28 @@
   const linePresetOptions=(type)=> (type==='material'?currentMaterialsMaster():currentAccessoriesMaster()).map((r,idx)=>`<option value="${idx}">${escapeHtml(r.description)}${r.specification?` • ${escapeHtml(r.specification)}`:''}</option>`).join('');
   const getMeasures=(item)=>{ const w=num(item?.width), h=num(item?.height), d=num(item?.depth), q=Math.max(1,num(item?.qty||1)); return {lm:(w/1000)*q, sqm:((w/1000)*(h/1000))*q, cubic:((w/1000)*(h/1000)*(d/1000))*q}; };
   const laborBasisComputed=(item)=>{ const m=getMeasures(item); if(item?.labor?.basisType==='sqm') return m.sqm; if(item?.labor?.basisType==='pc') return Math.max(1,num(item?.qty||1)); return m.lm; };
-  async function callAppsScript(action, payload = {}) {
+  async function callAppsScript(action,payload={}){
     if(!appSettings.appsScriptUrl) throw new Error('Add your Apps Script URL first in Settings → Data Source.');
-
-    const readActions = ['getMasterData', 'getProjects'];
-
-    if (readActions.includes(action)) {
-      const url = new URL(appSettings.appsScriptUrl);
-      url.searchParams.set('action', action);
-
-      const res = await fetch(url.toString(), {
-        method: 'GET'
-      });
-
-      if (!res.ok) throw new Error('Apps Script GET failed.');
-      return await res.json();
-    }
-
-    const formBody = new URLSearchParams();
-    formBody.set('payload', JSON.stringify({ action, ...payload }));
-
-    const res = await fetch(appSettings.appsScriptUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-      },
-      body: formBody.toString()
-    });
-
-    if (!res.ok) throw new Error('Apps Script POST failed.');
+    const res = await fetch(appSettings.appsScriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+    if(!res.ok) throw new Error('Apps Script request failed.');
     return await res.json();
   }
+  async function pullMasterData(){
+    try{
+      const data=await callAppsScript('getMasterData',{});
+      if(data.sheetUrl) appSettings.sheetUrl=data.sheetUrl;
+      if(data.categories) appSettings.categoryListText=data.categories.join('\n');
+      if(data.categoryPresets) appSettings.categoryPresetsText=JSON.stringify(data.categoryPresets,null,2);
+      if(data.materials) appSettings.materialMasterJson=JSON.stringify(data.materials);
+      if(data.accessories) appSettings.accessoryMasterJson=JSON.stringify(data.accessories);
+      if(data.clauses) appSettings.clauseLibraryText=(data.clauses||[]).map(x=>`${x.title}::${x.text}`).join('\n---\n');
+      if(data.quickEstimate){ Object.assign(appSettings,data.quickEstimate); }
+      saveAppSettings(); render(); alert('Master data pulled from Apps Script.');
+    }catch(err){ alert(err.message); }
+  }
+  async function pushCurrentProjectToSheet(){ if(!project) return alert('No active project to push.'); try{ await callAppsScript('saveProject',{project}); alert('Current project pushed to Apps Script.'); }catch(err){ alert(err.message); } }
+  async function pullProjectsFromSheet(){ try{ const data=await callAppsScript('getProjects',{}); if(Array.isArray(data.projects)){ localStorage.setItem('moduquote_projects', JSON.stringify(data.projects)); renderSavedProjects(); alert('Projects pulled from Apps Script.'); } else alert('No projects returned by Apps Script.'); }catch(err){ alert(err.message); } }
+
   function companyHeaderHtml(docTitle){
     const name=(appSettings.companyName||'').trim();
     const address=(appSettings.companyAddress||'').trim();
@@ -924,34 +915,32 @@
   if(byId('pullMasterDataBtn')) byId('pullMasterDataBtn').onclick=pullMasterData;
   if(byId('pushProjectBtn')) byId('pushProjectBtn').onclick=pushCurrentProjectToSheet;
   if(byId('pullProjectsBtn')) byId('pullProjectsBtn').onclick=pullProjectsFromSheet;
-  document.querySelectorAll('[data-settings-panel]').forEach(btn=>btn.onclick=()=>{ 
+  function switchSettingsPanel(panelName){
     document.querySelectorAll('.settings-nav-btn').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.settings-panel').forEach(x=>x.classList.remove('active'));
-    btn.classList.add('active');
-    const panel=byId('settings-panel-'+btn.dataset.settingsPanel);
+    const btn=document.querySelector('.settings-nav-btn[data-settings-panel="'+panelName+'"]');
+    const panel=byId('settings-panel-'+panelName);
+    if(btn) btn.classList.add('active');
     if(panel) panel.classList.add('active');
-  });
+  }
+  const settingsNav=document.querySelector('.settings-nav');
+  if(settingsNav){
+    settingsNav.addEventListener('click', (e)=>{
+      const btn=e.target.closest('.settings-nav-btn');
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      switchSettingsPanel(btn.dataset.settingsPanel);
+    });
+  }
   byId('duplicateProjectBtn').onclick=()=>{ if(!project) return; const copy=deepCopy(project); copy.id=uid('PROJ'); copy.quoteNo=`${project.quoteNo}-R${num(project.revisionNo)+1}`; copy.revisionNo=num(project.revisionNo)+1; project=copy; activeItemId=project.items[0]?.id||null; markDirty(); setDraftFromProject(); render(); };
   byId('topPricingMode').onchange=()=>{ if(!project) return; project.pricingMode=byId('topPricingMode').value; draftProject.pricingMode=project.pricingMode; markDirty(); render(); if(project.pricingMode==='estimate') go('quick'); };
   byId('printSelectedBtn').onclick=printSelectedForm; byId('printCurrentBtn').onclick=()=>{ go('print'); printSelectedForm(); };
   document.querySelectorAll('input[name="printMode"]').forEach(r=>r.onchange=renderPrint);
   window.addEventListener('beforeunload',e=>{ if(dirty&&project){ e.preventDefault(); e.returnValue=''; persistActiveProject(); } });
 
-  const settingsNavRoot = document.querySelector('.settings-nav');
-  if (settingsNavRoot) {
-    settingsNavRoot.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-settings-panel]');
-      if (!btn) return;
-      e.preventDefault();
-      document.querySelectorAll('.settings-nav-btn').forEach(x=>x.classList.remove('active'));
-      document.querySelectorAll('.settings-panel').forEach(x=>x.classList.remove('active'));
-      btn.classList.add('active');
-      const panel=byId('settings-panel-'+btn.dataset.settingsPanel);
-      if(panel) panel.classList.add('active');
-    });
-  }
-
   const loaded=loadActiveProject(); if(loaded){ project=loaded; activeItemId=project.items[0]?.id||null; setDraftFromProject(); markDirty(false); } else { bindDraftFields(); }
+  switchSettingsPanel('general');
   render();
 })();
 </script>
