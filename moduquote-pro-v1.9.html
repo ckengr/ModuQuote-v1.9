@@ -1,0 +1,930 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ModuQuote Pro v1.7</title>
+  <style>
+    :root{
+      --bg:#F5EFE6;--panel:#EFE6D8;--panel-2:#F8F4EE;--primary:#5A3E2B;--primary-2:#8B6A4E;
+      --text:#1C1C1C;--muted:#7A6E62;--line:#D8CCBE;--success:#4CAF50;--warn:#D4A95C;--danger:#C96A5A;
+      --shadow:0 10px 30px rgba(28,28,28,.08);--radius:16px;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{display:grid;grid-template-columns:250px 1fr;min-height:100vh;transition:grid-template-columns .22s ease}
+    .sidebar{background:#201914;color:#F5EFE6;padding:20px 16px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;transition:width .22s ease, padding .22s ease;overflow:hidden}
+    .brand{padding:14px 12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));}
+    .brand .big{font-size:24px;font-weight:800;letter-spacing:.5px}.brand .sub{font-size:13px;opacity:.85;margin-top:2px}
+    .nav{display:flex;flex-direction:column;gap:8px}.nav button{all:unset;padding:12px 14px;border-radius:12px;cursor:pointer;color:#F5EFE6;opacity:.88;display:flex;align-items:center;gap:10px}
+    .nav button.active,.nav button:hover{background:rgba(255,255,255,.1);opacity:1}.nav button.disabled{opacity:.4;cursor:not-allowed}
+    .sidebar .meta{margin-top:auto;font-size:12px;opacity:.7;line-height:1.5}
+    .main{display:flex;flex-direction:column;min-width:0}
+    .topbar{position:sticky;top:0;z-index:30;background:rgba(245,239,230,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .top-left,.top-right{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.chip,.select,button,input,textarea{font:inherit}
+    .chip{padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.chip.small{padding:8px 10px;font-size:12px}
+    .btn{border:1px solid var(--line);background:white;padding:10px 14px;border-radius:12px;cursor:pointer;transition:.15s ease;box-shadow:none}
+    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)} .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .btn.secondary{background:var(--primary-2);color:#fff;border-color:var(--primary-2)} .btn.ghost{background:transparent} .btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+    .content{padding:18px;display:grid;gap:18px}.screen{display:none}.screen.active{display:block}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .card h2,.card h3{margin:0 0 12px}.grid{display:grid;gap:14px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .field{display:grid;gap:6px}.field.compact{grid-template-columns:110px 1fr;align-items:center}.field.compact label{margin:0}
+    label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+    input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text)} textarea{min-height:86px;resize:vertical}
+    table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+    th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px} tr:last-child td{border-bottom:none}
+    .muted{color:var(--muted)} .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap} .space{display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .total-box{background:#201914;color:#F5EFE6;border-radius:16px;padding:12px 14px;min-width:180px}.total-box .label{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.8px}.total-box .value{font-size:22px;font-weight:800;margin-top:2px}
+    .layout-builder{display:grid;grid-template-columns:320px 1fr 240px;gap:16px;transition:grid-template-columns .22s ease}.list-panel{min-width:0}.scroll{max-height:68vh;overflow:auto}.toggle-live-btn{min-width:40px;padding:8px 10px}.quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.quick-result{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:14px}.quick-range{font-size:28px;font-weight:800}.quick-note{font-size:12px;color:var(--muted);line-height:1.5}
+    .item-row{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.58);cursor:pointer;display:grid;gap:6px}.item-row.active{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+    .pill{display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px}
+    .subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.subtabs button{all:unset;padding:9px 12px;border-radius:10px;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.75)} .subtabs button.active{background:var(--primary);border-color:var(--primary);color:#fff}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}.empty{padding:18px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center;background:rgba(255,255,255,.4)}
+    .summary-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.totals-list{display:grid;gap:8px}.totals-list .line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)} .totals-list .line:last-child{border-bottom:none}
+    .grand{font-size:26px;font-weight:800}.status{display:inline-flex;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px}.quote-list tr{cursor:pointer}.quote-list tr:hover td{background:rgba(255,255,255,.45)}
+    .print-wrap{background:white;padding:28px;border-radius:18px;border:1px solid var(--line)} .print-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--primary)}
+    .print-brand{font-weight:800;font-size:26px;color:var(--primary)} .print-brand small{display:block;font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:700}
+    .project-list-card{display:grid;gap:10px}.project-link{padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.58);cursor:pointer}.project-link:hover{border-color:var(--primary)}
+    .compact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.live-card.collapsed .totals-list{display:none}.tiny{font-size:12px}.right-sticky{position:sticky;top:84px;align-self:start}
+    .hidden{display:none!important}
+    
+    .app.sidebar-collapsed{grid-template-columns:74px 1fr}
+    .app.sidebar-collapsed .sidebar{padding:20px 10px}
+    .app.sidebar-collapsed .brand .sub,.app.sidebar-collapsed .brand .big span,.app.sidebar-collapsed .nav .label,.app.sidebar-collapsed .sidebar .meta{display:none}
+    .app.sidebar-collapsed .brand .big{font-size:20px;text-align:center}
+    .app.sidebar-collapsed .nav button{justify-content:center}
+    .layout-builder.live-collapsed{grid-template-columns:320px 1fr 56px}
+    .layout-builder.live-collapsed .right-sticky .totals-list,.layout-builder.live-collapsed .right-sticky h3{display:none}
+    .layout-builder.live-collapsed .right-sticky{display:flex;align-items:center;justify-content:center;padding:8px}.layout-builder.live-collapsed .right-sticky .space{justify-content:center}.layout-builder.live-collapsed .right-sticky .total-box{min-width:0;padding:8px}
+    .layout-builder.live-collapsed .right-sticky .total-box .value{font-size:16px}
+    .icon-btn{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}
+    .tooltip-wrap{position:relative}
+    .tooltip-wrap .tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);background:#1C1C1C;color:#fff;padding:7px 9px;border-radius:8px;font-size:12px;line-height:1.3;min-width:max-content;max-width:240px;opacity:0;pointer-events:none;transition:.14s ease;z-index:60;box-shadow:0 10px 24px rgba(0,0,0,.22)}
+    .tooltip-wrap:hover .tip,.has-tip:hover .tip{opacity:1}
+    .has-tip{position:relative}
+    .has-tip .tip{position:absolute;left:0;top:calc(100% + 6px);background:#1C1C1C;color:#fff;padding:7px 9px;border-radius:8px;font-size:12px;line-height:1.3;min-width:180px;max-width:240px;opacity:0;pointer-events:none;transition:.14s ease;z-index:60;box-shadow:0 10px 24px rgba(0,0,0,.22)}
+    .tip-icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;border:1px solid var(--line);font-size:11px;background:#fff;color:var(--primary);margin-left:6px;cursor:help}
+    .line-tools{display:flex;gap:6px;align-items:center}
+    .line-mode-btn{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+    .line-mode-btn.active{border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+    .line-mode-btn .tip{left:50%;transform:translateX(-50%)}
+    .field.compact textarea{min-height:42px}
+    td input, td select{min-width:0}
+    td,th{word-break:break-word}
+
+    .settings-shell{display:grid;grid-template-columns:250px 1fr;gap:16px}.settings-nav{display:grid;gap:8px}.settings-nav-btn{all:unset;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.55);cursor:pointer;font-weight:600}.settings-nav-btn.active,.settings-nav-btn:hover{background:#fff;border-color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}.settings-panel{display:none}.settings-panel.active{display:block}.switch-row{display:flex;gap:10px;flex-wrap:wrap}.switch-row .pill{cursor:pointer}.setting-group{display:grid;gap:14px}.setting-note{font-size:12px;color:var(--muted);line-height:1.5}.settings-shell .card{height:fit-content}
+    @media (max-width: 1180px){.layout-builder.live-collapsed{grid-template-columns:1fr}}
+
+    @media (max-width: 1180px){.layout-builder,.layout-builder.live-collapsed{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr}.right-sticky{position:static}}
+    .dash-controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:12px 0}
+    .dash-table{width:100%;border-collapse:collapse}
+    .dash-table th,.dash-table td{padding:10px 8px;border-bottom:1px solid #e6ddd2;text-align:left;vertical-align:top}
+    .dash-table tr:hover{background:#f7f0e7;cursor:pointer}
+    .micro{font-size:12px}
+    .field-help{font-size:12px;color:var(--muted);margin-top:6px}
+    .measure-pills{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .measure-pills .pill{background:#f5efe6}
+    .line-head{display:flex;align-items:center;gap:8px}
+    .line-mode{display:flex;gap:6px;align-items:center}
+    .icon-mini{border:1px solid #d7c9b7;background:#fff;border-radius:10px;padding:4px 8px;font-size:12px;cursor:pointer}
+    .icon-mini.active{background:#5A3E2B;color:#fff;border-color:#5A3E2B}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .chip-btn{padding:8px 10px;border:1px solid #d7c9b7;background:#fff7ef;border-radius:999px;cursor:pointer;font-size:12px}
+    .print-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 14px}
+    .sync-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8B6A4E;margin-right:6px}
+    .tiny-note{font-size:11px;color:#7a6e62}
+    @media (max-width: 840px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.g2,.g3,.g4,.g5,.compact-grid,.dash-controls,.print-controls{grid-template-columns:1fr}.topbar{position:static}.field.compact{grid-template-columns:1fr}}
+    @media print{.sidebar,.topbar,.no-print,.screen:not(#screen-print){display:none!important} body{background:#fff}.main,.content,.screen,.screen.active{display:block!important;padding:0;margin:0}.card{box-shadow:none;border:none;padding:0;background:#fff}.print-wrap{border:none;padding:0}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <div class="big"><span>ModuQuote Pro</span></div>
+      <div class="sub">Cabinet Costing v1.5</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" data-screen="dashboard"><span>🏠</span><span class="label">Dashboard</span></button>
+      <button class="nav-btn" data-screen="project"><span>📝</span><span class="label">Project Setup</span></button>
+      <button class="nav-btn project-only" data-screen="builder"><span>🧾</span><span class="label">Cost Builder</span></button>
+      <button class="nav-btn project-only" data-screen="summary"><span>📊</span><span class="label">Summary</span></button>
+      <button class="nav-btn project-only" data-screen="quick"><span>⚡</span><span class="label">Quick Estimate</span></button>
+      <button class="nav-btn project-only" data-screen="boq"><span>📦</span><span class="label">BOQ</span></button>
+      <button class="nav-btn project-only" data-screen="print"><span>🖨</span><span class="label">Print</span></button>
+      <button class="nav-btn project-only" data-screen="accounting"><span>💰</span><span class="label">Accounting</span></button>
+      <button class="nav-btn" data-screen="settings"><span>⚙</span><span class="label">Settings</span></button>
+    </nav>
+    <div class="meta">This version keeps the workflow tighter: create from Project Setup first, work inside one active project, then exit back to Dashboard.</div>
+  </aside>
+  <main class="main">
+    <div class="topbar no-print">
+      <div class="top-left"><button class="btn ghost icon-btn" id="toggleSidebarBtn" title="Toggle menu">☰</button>
+        <div class="chip"><strong id="topProjectName">No Active Project</strong></div>
+        <select id="topPricingMode" class="select chip project-only" disabled>
+          <option value="materials">Materials + Labor</option>
+          <option value="labor_only">Labor Only</option>
+          <option value="estimate">Budgetary Estimate</option>
+        </select>
+        <div class="status" id="saveState">Ready</div>
+      </div>
+      <div class="top-right">
+        <button class="btn ghost" id="exitProjectBtn">Exit Project</button>
+        <button class="btn" id="duplicateProjectBtn">Duplicate</button>
+        <button class="btn" id="saveProjectBtn">Save</button>
+        <button class="btn secondary project-only" id="printCurrentBtn">Print</button>
+        <div class="total-box" id="topTotalBox">
+          <div class="label">Final Price</div><div class="value" id="topFinalPrice">₱0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <section class="screen active" id="screen-dashboard">
+        <div class="grid g2">
+          <div class="card" style="grid-column:1 / -1">
+            <div class="space"><h2>Dashboard</h2><button class="btn primary" id="dashboardNewBtn">New Project</button></div>
+            <p class="muted">Search, filter, and sort your saved projects. Click a row to open that project.</p>
+            <div class="dash-controls">
+              <div class="field"><label>Search Project</label><input id="dashboardSearch" placeholder="Quote no., client, or project name"></div>
+              <div class="field"><label>Status Filter</label><select id="dashboardStatusFilter"><option value="all">All</option><option>Draft</option><option>Final</option><option>Approved</option><option>Archived</option><option>Sent</option><option>Accepted</option><option>Rejected</option><option>Expired</option></select></div>
+              <div class="field"><label>Sort By</label><select id="dashboardSort"><option value="saved_desc">Last Saved (Newest)</option><option value="saved_asc">Last Saved (Oldest)</option><option value="quote_asc">Quote No</option><option value="client_asc">Client Name</option><option value="amount_desc">Amount (Highest)</option><option value="amount_asc">Amount (Lowest)</option></select></div>
+            </div>
+            <div id="dashboardProjects" class="project-list-card"></div>
+          </div>
+          <div class="card">
+            <h2>Current Snapshot</h2>
+            <div class="totals-list">
+              <div class="line"><span>Project</span><strong id="dashProject">None</strong></div>
+              <div class="line"><span>Items</span><strong id="dashItems">0</strong></div>
+              <div class="line"><span>Pricing Mode</span><strong id="dashMode">-</strong></div>
+              <div class="line"><span>Final Price</span><strong id="dashFinal">₱0.00</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>1.9 Focus</h2>
+            <div class="totals-list">
+              <div class="line"><span>Sheets Sync</span><strong>Integration-ready</strong></div>
+              <div class="line"><span>Smart Measurements</span><strong>Enabled</strong></div>
+              <div class="line"><span>Advanced Presets</span><strong>Editable</strong></div>
+              <div class="line"><span>Clause Library</span><strong>Included</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-project">
+        <div class="card">
+          <div class="space"><h2>Project Setup</h2><button class="btn primary" id="createProjectBtn">Next: Create Project</button></div>
+          <div class="grid g3">
+            <div class="field"><label>Client Name</label><input id="clientName" /></div>
+            <div class="field"><label>Project Name</label><input id="projectName" /></div>
+            <div class="field"><label>Location</label><input id="projectLocation" /></div>
+            <div class="field"><label>Date</label><input id="projectDate" type="date" /></div>
+            <div class="field"><label>Quote No.</label><input id="quoteNo" /></div>
+            <div class="field"><label>Revision No.</label><input id="revisionNo" type="number" min="0" step="1" /></div>
+            <div class="field"><label>Status</label><select id="projectStatus"><option>Draft</option><option>Final</option><option>Approved</option><option>Archived</option></select></div>
+            <div class="field"><label>Quote Validity (days) <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Number of days your quotation remains valid for the client.</span></span></label><input id="quoteValidityDays" type="number" min="0" step="1" /></div>
+            <div class="field"><label>Project Lead Time (days)</label><input id="leadTimeDays" type="number" min="0" step="1" /></div>
+            <div class="field"><label>Currency</label><input id="currency" value="PHP" /></div>
+            <div class="field"><label>Prepared By</label><input id="createdBy" value="" /></div>
+            <div class="field"><label>Pricing Mode <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Materials + Labor includes all direct costs. Labor Only excludes material and accessory costs from the final selling price. Budgetary Estimate is for quick pricing.</span></span></label><select id="projectPricingMode"><option value="materials">Materials + Labor</option><option value="labor_only">Labor Only</option><option value="estimate">Budgetary Estimate</option></select></div>
+          </div>
+          <div class="card" style="margin-top:14px;background:var(--panel-2)">
+            <h3 style="margin-bottom:10px">Commercial Status</h3>
+            <div class="grid g2">
+              <div class="field"><label>Quote Status</label><select id="quoteStatus"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Rejected</option><option>Expired</option></select></div>
+              <div class="field"><label>Date Accepted</label><input id="acceptedDate" type="date" /></div>
+              <div class="field"><label>Accepted Amount Basis</label><select id="acceptedAmountMode"><option value="quoted">Use Quoted Price</option><option value="custom">Use Custom Approved Amount</option></select></div>
+              <div class="field"><label>Approved / Contract Amount</label><input id="contractAmount" type="number" min="0" step="0.01" /></div>
+            </div>
+            <p class="muted tiny" style="margin-top:8px">Accounting uses the accepted / contract amount, not just the quoted amount. If the client negotiated a different price, enter it here.</p>
+          </div>
+          <div class="card" style="margin-top:14px;background:var(--panel-2)">
+            <div class="space"><h3 style="margin-bottom:10px">Terms &amp; Conditions</h3><div class="row"><button class="btn" id="loadDefaultTermsBtn" type="button">Load Default Terms</button><button class="btn secondary" id="appendClauseBtn" type="button">Insert Clause</button></div></div>
+            <div class="grid g2">
+              <div class="field"><label>Clause Library</label><select id="projectClauseSelect"><option value="">Select clause to insert</option></select><div class="field-help">Insert reusable clauses from Settings → Clauses.</div></div>
+              <div class="field"><label>Formatting</label><div class="field-help" style="padding-top:34px">Line breaks are preserved in print. This works well for numbered and bullet-style terms.</div></div>
+            </div>
+            <div class="field"><label>Project Terms &amp; Conditions</label><textarea id="projectTerms" style="min-height:180px" placeholder="Enter the project-specific quotation terms and conditions here."></textarea></div>
+            <p class="muted tiny" style="margin-top:8px">These terms are saved per project and will appear at the bottom of the Client Quotation printout.</p>
+          </div>
+          <div class="field" style="margin-top:14px"><label>Notes</label><textarea id="projectNotes"></textarea></div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-builder">
+        <div class="layout-builder" id="builderLayout">
+          <div class="card list-panel">
+            <div class="toolbar"><h3>Scope Items</h3><div class="row"><button class="btn primary" id="addItemBtn">+ Add Item</button><button class="btn" id="duplicateItemBtn">Duplicate</button></div></div>
+            <div id="itemList" class="scroll"></div>
+          </div>
+          <div class="card">
+            <div class="space"><h3 id="builderItemTitle">Item Details</h3><div class="pill" id="itemTotalPill">₱0.00</div></div>
+            <div id="itemEditor"></div>
+          </div>
+          <div class="card live-card right-sticky" id="liveCard">
+            <div class="space"><h3 style="margin:0">Live Totals</h3><button class="btn ghost toggle-live-btn" id="toggleLiveTotalsBtn" title="Collapse or expand live totals">❯</button></div>
+            <div class="totals-list" id="liveTotals"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-summary">
+        <div class="summary-grid">
+          <div class="card"><h2>Project Cost Summary</h2><div class="totals-list" id="summaryBreakdown"></div></div>
+          <div class="card">
+            <h2>Pricing Controls</h2>
+            <div class="grid">
+              <div class="field"><label>Monthly Overhead <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Total monthly overhead of your operation. The app allocates this proportionally based on project lead time and working hours.</span></span></label><input id="monthlyOverhead" type="number" min="0" step="0.01" /></div>
+              <div class="compact-grid">
+                <div class="field"><label>Working Days / Month</label><input id="workingDaysPerMonth" type="number" min="1" step="1" /></div>
+                <div class="field"><label>Hours / Day</label><input id="hoursPerDay" type="number" min="1" step="0.5" /></div>
+              </div>
+              <div class="field"><label>Fuel Price / Liter <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Current diesel or gasoline price used by the logistics calculator.</span></span></label><input id="fuelPricePerLiter" type="number" min="0" step="0.01" /></div>
+              <div class="compact-grid">
+                <div class="field"><label>Total Distance (km)</label><input id="distanceKm" type="number" min="0" step="0.01" /></div>
+                <div class="field"><label>No. of Deliveries</label><input id="deliveryCount" type="number" min="0" step="1" /></div>
+              </div>
+              <div class="compact-grid">
+                <div class="field"><label>Fuel Efficiency (km/L)</label><input id="kmPerLiter" type="number" min="0.1" step="0.1" /></div>
+                <div class="field"><label>Minimum Logistics Charge <span class="has-tip"><span class="tip-icon">i</span><span class="tip">If computed logistics is lower than this value, the minimum charge is applied.</span></span></label><input id="minimumLogisticsCharge" type="number" min="0" step="0.01" /></div>
+              </div>
+              <div class="field"><label>Contractor SOP (%) <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Additional contractor/service fee applied after operational cost.</span></span></label><input id="sopPercent" type="number" min="0" step="0.01" /></div>
+              <div class="field"><label>Contingency (%) <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Allowance for unforeseen cost increases or site issues.</span></span></label><input id="contingencyPercent" type="number" min="0" step="0.01" /></div>
+              <div class="field"><label>Markup (%) <span class="has-tip"><span class="tip-icon">i</span><span class="tip">Profit margin applied after safe cost is determined.</span></span></label><input id="markupPercent" type="number" min="0" step="0.01" /></div>
+            </div>
+            <div style="margin-top:14px" class="total-box"><div class="label">Final Selling Price</div><div class="value grand" id="summaryFinalPrice">₱0.00</div></div>
+            <p class="muted tiny" style="margin-top:10px">For now, logistics uses fuel price, distance, deliveries, efficiency, and minimum charge. Site location is stored for the project record. Automatic map-based distance can be added later during Google Sheets/API integration.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-quick">
+        <div class="layout-builder" id="estimateLayout">
+          <div class="card list-panel">
+            <div class="toolbar"><h3>Estimate Items</h3><div class="row"><button class="btn primary" id="addEstimateItemBtn">+ Add Item</button><button class="btn" id="duplicateEstimateItemBtn">Duplicate</button></div></div>
+            <div id="estimateItemList" class="scroll"></div>
+          </div>
+          <div class="card">
+            <div class="space"><h3 id="estimateItemTitle">Estimate Item</h3><div class="pill" id="estimateItemPill">₱0.00</div></div>
+            <div id="estimateEditor"></div>
+          </div>
+          <div class="card live-card right-sticky" id="estimateLiveCard">
+            <div class="space"><h3 style="margin:0">Estimate Totals</h3><button class="btn ghost toggle-live-btn" id="toggleEstimateTotalsBtn" title="Collapse or expand estimate totals">❯</button></div>
+            <div class="totals-list" id="estimateTotals"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-boq"><div class="card"><div class="toolbar"><h2>Purchase List / BOQ</h2><button class="btn" id="refreshBoqBtn">Refresh BOQ</button></div><div id="boqTableWrap"></div></div></section>
+
+      <section class="screen" id="screen-print">
+        <div class="card no-print">
+          <div class="row">
+            <label class="pill"><input type="radio" name="printMode" value="internal" checked> &nbsp;Internal Costing</label>
+            <label class="pill"><input type="radio" name="printMode" value="client"> &nbsp;Client Quotation</label>
+            <label class="pill"><input type="radio" name="printMode" value="boq"> &nbsp;BOQ</label>
+            <button class="btn secondary" id="printSelectedBtn">Print Selected Form</button>
+          </div>
+          <p class="muted tiny">Printable forms now use the Company Information values from Settings. Fill in your company name, address, and contact details there to replace the default app branding on all generated forms.</p>
+        </div>
+        <div class="print-wrap" id="printView"></div>
+      </section>
+      <section class="screen" id="screen-accounting">
+        <div class="grid g2">
+          <div class="card">
+            <h2>Accounting Summary</h2>
+            <div id="accountingLocked" class="empty" style="display:none">Accounting is available only for accepted projects. Set Quote Status to <strong>Accepted</strong> in Project Setup first.</div>
+            <div id="accountingSummary"></div>
+          </div>
+          <div class="card">
+            <h2>Add Payment</h2>
+            <div id="paymentFormWrap">
+              <div class="grid g2">
+                <div class="field"><label>Date Received</label><input id="payDate" type="date" /></div>
+                <div class="field"><label>Payment Type</label><select id="payType"><option value="Downpayment">Downpayment</option><option value="Partial Payment">Partial Payment / Progress Billing</option><option value="Final Payment">Final Payment</option></select></div>
+                <div class="field"><label>Amount Received</label><input id="payAmount" type="number" min="0" step="0.01" /></div>
+                <div class="field"><label>Payment Method</label><input id="payMethod" placeholder="Cash / Bank Transfer / Check" /></div>
+                <div class="field"><label>Reference No.</label><input id="payRef" /></div>
+                <div class="field"><label>Received By</label><input id="payReceivedBy" /></div>
+              </div>
+              <div class="field"><label>Remarks</label><textarea id="payNotes"></textarea></div>
+              <div class="row" style="margin-top:10px"><button class="btn primary" id="addPaymentBtn">Record Payment</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid g2" style="margin-top:14px">
+          <div class="card">
+            <div class="space"><h2>Payment History</h2><div class="pill" id="paymentCountPill">0 payments</div></div>
+            <div id="paymentHistory"></div>
+          </div>
+          <div class="card">
+            <div class="space"><h2>Acknowledgement Receipt</h2><button class="btn secondary" id="printReceiptBtn">Print Receipt</button></div>
+            <div class="print-wrap" id="receiptPreview"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-settings">
+        <div class="settings-shell">
+          <div class="card">
+            <h2 style="margin-bottom:12px">Settings</h2>
+            <div class="settings-nav">
+              <button class="settings-nav-btn active" data-settings-panel="general">General</button>
+              <button class="settings-nav-btn" data-settings-panel="company">Company</button>
+              <button class="settings-nav-btn" data-settings-panel="pricing">Pricing</button>
+              <button class="settings-nav-btn" data-settings-panel="quick">Quick Estimate</button>
+              <button class="settings-nav-btn" data-settings-panel="presets">Presets</button>
+              <button class="settings-nav-btn" data-settings-panel="clauses">Clauses</button>
+              <button class="settings-nav-btn" data-settings-panel="data">Data Source</button>
+              <button class="settings-nav-btn" data-settings-panel="printprefs">Print</button>
+              <button class="settings-nav-btn" data-settings-panel="interface">Interface</button>
+              <button class="settings-nav-btn" data-settings-panel="about">About</button>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="card settings-panel active" id="settings-panel-general">
+              <h2>General</h2>
+              <div class="setting-group">
+                <div class="grid g2">
+                  <div class="field"><label>Google Sheet URL</label><input id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/..." /></div>
+                  <div class="field"><label>Open Master Sheet</label><button class="btn secondary" id="openSheetBtn">Open Google Sheets</button></div>
+                </div>
+                <div class="field" style="margin-top:14px">
+                  <label>Default Terms &amp; Conditions</label>
+                  <textarea id="defaultTerms" placeholder="Paste your default quotation terms and conditions here. Use line breaks to keep the structure for printing."></textarea>
+                </div>
+                <div class="setting-note">Use this as your admin control area. Update master prices, categories, presets, and quick-estimate values in Google Sheets, then open them from here. The default terms here are copied into a project when you click <strong>Load Default Terms</strong> in Project Setup.</div>
+              </div>
+            </div>
+
+
+            <div class="card settings-panel" id="settings-panel-company">
+              <h2>Company Information</h2>
+              <div class="setting-group">
+                <div class="grid g2">
+                  <div class="field"><label>Company Name</label><input id="companyName" placeholder="Your company name" /></div>
+                  <div class="field"><label>Contact Number</label><input id="companyContact" placeholder="0917-XXX-XXXX" /></div>
+                  <div class="field g2" style="grid-column:1 / -1"><label>Address</label><textarea id="companyAddress" placeholder="Full company address"></textarea></div>
+                  <div class="field"><label>Email</label><input id="companyEmail" placeholder="name@email.com" /></div>
+                  <div class="field"><label>Website / Facebook (optional)</label><input id="companyWebsite" placeholder="Website or social page" /></div>
+                </div>
+                <div class="setting-note">These details replace the ModuQuote name on printable forms. Quotation, BOQ, costing sheets, and acknowledgement receipts will use this header automatically.</div>
+              </div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-pricing">
+              <h2>Pricing</h2>
+              <div class="grid g2">
+                <div class="field"><label>Default Labor %</label><input id="defaultLaborPercent" type="number" min="0" step="0.01" /></div>
+                <div class="field"><label>Default SOP %</label><input id="defaultSopPercent" type="number" min="0" step="0.01" /></div>
+                <div class="field"><label>Default Contingency %</label><input id="defaultContingencyPercent" type="number" min="0" step="0.01" /></div>
+                <div class="field"><label>Default Markup %</label><input id="defaultMarkupPercent" type="number" min="0" step="0.01" /></div>
+              </div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-quick">
+              <h2>Quick Estimate</h2>
+              <div class="setting-group">
+                <div class="grid g2">
+                  <div class="field">
+                    <label>Budgetary Output Mode</label>
+                    <div class="switch-row">
+                      <label class="pill"><input type="radio" name="qeOutputMode" id="qeOutputModeFixed" value="fixed"> &nbsp;Fixed Cost</label>
+                      <label class="pill"><input type="radio" name="qeOutputMode" id="qeOutputModeRange" value="range"> &nbsp;Budgetary Range</label>
+                    </div>
+                  </div>
+                  <div class="field"><label>Range Spread %</label><input id="qeRangePercent" type="number" min="0" step="0.01" /></div>
+                </div>
+                <div class="grid g2">
+                  <div class="field"><label>Base Cabinet Rate / LM</label><input id="qeRateBase" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Overhead Rate / LM</label><input id="qeRateOverhead" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Tall Cabinet Rate / LM</label><input id="qeRateTall" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Low Tier Multiplier</label><input id="qeTierLow" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Mid Tier Multiplier</label><input id="qeTierMid" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>High Tier Multiplier</label><input id="qeTierHigh" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Laminated Multiplier</label><input id="qeFinishLaminated" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Painted Multiplier</label><input id="qeFinishPainted" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Countertop Add-on / LM</label><input id="qeCountertopPerLm" type="number" min="0" step="0.01" /></div>
+                  <div class="field"><label>Special Hardware %</label><input id="qeSpecialHardwarePercent" type="number" min="0" step="0.01" /></div>
+                </div>
+                <div class="setting-note">Fixed Cost shows one number per item and total. Budgetary Range shows a low-to-high range for each item and for the project total.</div>
+              </div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-presets">
+              <h2>Presets</h2>
+              <div class="setting-group">
+                <div class="field"><label>Item Categories (one per line)</label><textarea id="categoryListText" placeholder="Kitchen Cabinet&#10;Wardrobe&#10;Vanity"></textarea></div>
+                <div class="field" style="margin-top:12px"><label>Category Presets JSON</label><textarea id="categoryPresetsText" style="min-height:220px" placeholder='{"Kitchen Cabinet":{"materials":[...],"accessories":[...]}}'></textarea></div>
+                <div class="setting-note">Edit your categories and preset packages here. When a category is selected in Cost Builder, matching preset materials and accessories can auto-load into a new empty item.</div>
+              </div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-clauses">
+              <h2>Clause Library</h2>
+              <div class="setting-group">
+                <div class="field"><label>Reusable Clauses</label><textarea id="clauseLibraryText" style="min-height:220px" placeholder="Payment Terms::50% downpayment before fabrication.&#10;---&#10;Warranty::One-year service warranty for workmanship defects."></textarea></div>
+                <div class="setting-note">Format: <strong>Title::Clause text</strong>, separated by <strong>---</strong> on its own line. These clauses appear in Project Setup so you can insert them into the quotation terms.</div>
+              </div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-data">
+              <h2>Data Source</h2>
+              <div class="grid g2">
+                <div class="field"><label>Google Sheet URL</label><input id="sheetUrlData" placeholder="https://docs.google.com/spreadsheets/..." /></div>
+                <div class="field"><label>Apps Script Web App URL</label><input id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" /></div>
+              </div>
+              <div class="sync-actions">
+                <button class="btn" id="openMaterialsBtn">Open Materials Tab</button>
+                <button class="btn" id="openAccessoriesBtn">Open Accessories Tab</button>
+                <button class="btn" id="openQuickSettingsBtn">Open Quick Estimate Tab</button>
+                <button class="btn secondary" id="pullMasterDataBtn">Pull Master Data</button>
+                <button class="btn secondary" id="pullProjectsBtn">Pull Projects</button>
+                <button class="btn primary" id="pushProjectBtn">Push Current Project</button>
+              </div>
+              <p class="setting-note" style="margin-top:12px">This build is integration-ready. Add your Apps Script URL, then the app can pull master data and push or pull projects. The endpoint should return JSON and accept project payloads.</p>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-printprefs">
+              <h2>Print Preferences</h2>
+              <div class="grid g2">
+                <div class="field"><label><input id="printShowMeta" type="checkbox"> Show client and quote details</label></div>
+                <div class="field"><label><input id="printShowTerms" type="checkbox"> Show terms and conditions</label></div>
+                <div class="field"><label><input id="printCompactTables" type="checkbox"> Compact tables</label></div>
+                <div class="field"><label><input id="printShowRemarks" type="checkbox"> Show remarks where available</label></div>
+              </div>
+              <div class="setting-note">Use these to tighten the print layout for quotations, BOQ, and internal costing sheets.</div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-interface">
+              <h2>Interface</h2>
+              <div class="grid g2">
+                <div class="field"><label>Default Sidebar</label><select id="defaultSidebarState"><option value="expanded">Expanded</option><option value="collapsed">Collapsed</option></select></div>
+                <div class="field"><label>Live Totals Panel</label><select id="defaultLiveTotalsState"><option value="expanded">Expanded</option><option value="collapsed">Collapsed</option></select></div>
+              </div>
+              <div class="row" style="margin-top:10px"><label class="pill"><input type="checkbox" id="autoSaveToggle"> &nbsp;Auto save on major changes</label></div>
+            </div>
+
+            <div class="card settings-panel" id="settings-panel-about">
+              <h2>About This Settings Panel</h2>
+              <p class="muted">This layout is organized like a focused control panel: categories on the left, active settings on the right. Daily quoting stays in Project Setup, Cost Builder, Summary, BOQ, and Print.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+(() => {
+  const currencySymbol='₱'; const byId=id=>document.getElementById(id); const num=v=>Number(v)||0;
+  const uid=(p='ID')=>`${p}-${Math.random().toString(36).slice(2,8).toUpperCase()}${Date.now().toString().slice(-4)}`;
+  const deepCopy=o=>JSON.parse(JSON.stringify(o));
+  const money=n=>`${currencySymbol}${(Number(n)||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const estimateDisplay=(fixed,low,high)=> appSettings.qeOutputMode==='range' ? `${money(low)} - ${money(high)}` : money(fixed);
+  const builtInCategories=['Kitchen Cabinet','Wardrobe','Vanity','Island','TV Console','Pantry','Office Cabinet','Other'];
+  const builtInCategoryPresets={
+    'Kitchen Cabinet':{materials:[{description:'18mm Laminated Board',specification:'4x8',qty:1,unit:'sheet',unitCost:1850,mode:'preset'} ,{description:'9mm Back Panel',specification:'4x8',qty:1,unit:'sheet',unitCost:900,mode:'preset'}],accessories:[{description:'Soft-close Hinge',specification:'Standard',qty:4,unit:'pc',unitCost:35,mode:'preset'}]},
+    'Wardrobe':{materials:[{description:'18mm Laminated Board',specification:'4x8',qty:2,unit:'sheet',unitCost:1850,mode:'preset'},{description:'9mm Back Panel',specification:'4x8',qty:1,unit:'sheet',unitCost:900,mode:'preset'}],accessories:[{description:'Soft-close Hinge',specification:'Standard',qty:8,unit:'pc',unitCost:35,mode:'preset'},{description:'Handle',specification:'Standard',qty:4,unit:'pc',unitCost:120,mode:'preset'}]},
+    'Vanity':{materials:[{description:'18mm Marine Board',specification:'4x8',qty:1,unit:'sheet',unitCost:2100,mode:'preset'}],accessories:[{description:'Soft-close Hinge',specification:'Standard',qty:4,unit:'pc',unitCost:35,mode:'preset'}]}
+  };
+  const builtInMaterials=[{description:'18mm Laminated Board',specification:'4x8',unit:'sheet',unitCost:1850},{description:'18mm Marine Board',specification:'4x8',unit:'sheet',unitCost:2100},{description:'9mm Back Panel',specification:'4x8',unit:'sheet',unitCost:900},{description:'PVC Edge Band 1mm',specification:'Roll',unit:'roll',unitCost:240}];
+  const builtInAccessories=[{description:'Soft-close Hinge',specification:'Standard',unit:'pc',unitCost:35},{description:'Handle',specification:'Standard',unit:'pc',unitCost:120},{description:'Drawer Slide',specification:'Pair',unit:'pair',unitCost:250}];
+  const materialPresets=[
+    {name:'18mm Laminated Board',specification:'4x8',unit:'sheet',unitCost:1850},
+    {name:'9mm Back Panel',specification:'4x8',unit:'sheet',unitCost:900},
+    {name:'18mm Marine Board',specification:'4x8',unit:'sheet',unitCost:2100},
+    {name:'PVC Edge Band 1mm',specification:'22mm',unit:'roll',unitCost:450}
+  ];
+  const accessoryPresets=[
+    {name:'Soft-close Hinge',specification:'Standard',unit:'pc',unitCost:35},
+    {name:'Drawer Slide',specification:'Standard',unit:'pair',unitCost:250},
+    {name:'Handle',specification:'Standard',unit:'pc',unitCost:120},
+    {name:'Pull-out Basket',specification:'Standard',unit:'set',unitCost:2800}
+  ];
+  const defaultSettings=()=>({sheetUrl:'',appsScriptUrl:'',defaultSidebarState:'expanded',defaultLiveTotalsState:'expanded',autoSave:true,companyName:'',companyAddress:'',companyContact:'',companyEmail:'',companyWebsite:'',defaultLaborPercent:40,defaultSopPercent:5,defaultContingencyPercent:10,defaultMarkupPercent:20,qeRateBase:8000,qeRateOverhead:6000,qeRateTall:12000,qeTierLow:0.85,qeTierMid:1,qeTierHigh:1.25,qeFinishLaminated:1,qeFinishPainted:1.3,qeCountertopPerLm:5000,qeSpecialHardwarePercent:15,qeRangePercent:10,qeOutputMode:'range',defaultTerms:'',categoryListText:builtInCategories.join('\n'),categoryPresetsText:JSON.stringify(builtInCategoryPresets,null,2),clauseLibraryText:'Payment Terms::50% downpayment before fabrication.\n---\nBalance Terms::Balance payable upon completion and prior to turnover.',materialMasterJson:JSON.stringify(builtInMaterials),accessoryMasterJson:JSON.stringify(builtInAccessories),printShowMeta:true,printShowTerms:true,printCompactTables:false,printShowRemarks:false});
+  let appSettings = (()=>{ try{return Object.assign(defaultSettings(), JSON.parse(localStorage.getItem('moduquote_settings')||'{}'));}catch{return defaultSettings();} })();
+  const saveAppSettings=()=>localStorage.setItem('moduquote_settings', JSON.stringify(appSettings));
+  const safeJson=(txt,fallback)=>{ try{return JSON.parse(txt);}catch{return fallback;} };
+  const currentCategories=()=>{ const arr=(appSettings.categoryListText||'').split(/\n+/).map(s=>s.trim()).filter(Boolean); return arr.length?arr:builtInCategories; };
+  const currentCategoryPresets=()=>{ const obj=safeJson(appSettings.categoryPresetsText,builtInCategoryPresets); return obj && typeof obj==='object'?obj:builtInCategoryPresets; };
+  const currentMaterialsMaster=()=> safeJson(appSettings.materialMasterJson,builtInMaterials) || builtInMaterials;
+  const currentAccessoriesMaster=()=> safeJson(appSettings.accessoryMasterJson,builtInAccessories) || builtInAccessories;
+  const currentClauseLibrary=()=> (appSettings.clauseLibraryText||'').split(/\n---\n|\n---\r?\n?/).map(x=>x.trim()).filter(Boolean).map((row,idx)=>{ const parts=row.split('::'); return {title:(parts[0]||`Clause ${idx+1}`).trim(), text:(parts.slice(1).join('::')||parts[0]||'').trim()}; });
+  const linePresetOptions=(type)=> (type==='material'?currentMaterialsMaster():currentAccessoriesMaster()).map((r,idx)=>`<option value="${idx}">${escapeHtml(r.description)}${r.specification?` • ${escapeHtml(r.specification)}`:''}</option>`).join('');
+  const getMeasures=(item)=>{ const w=num(item?.width), h=num(item?.height), d=num(item?.depth), q=Math.max(1,num(item?.qty||1)); return {lm:(w/1000)*q, sqm:((w/1000)*(h/1000))*q, cubic:((w/1000)*(h/1000)*(d/1000))*q}; };
+  const laborBasisComputed=(item)=>{ const m=getMeasures(item); if(item?.labor?.basisType==='sqm') return m.sqm; if(item?.labor?.basisType==='pc') return Math.max(1,num(item?.qty||1)); return m.lm; };
+  async function callAppsScript(action,payload={}){
+    if(!appSettings.appsScriptUrl) throw new Error('Add your Apps Script URL first in Settings → Data Source.');
+    const res = await fetch(appSettings.appsScriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+    if(!res.ok) throw new Error('Apps Script request failed.');
+    return await res.json();
+  }
+  async function pullMasterData(){
+    try{
+      const data=await callAppsScript('getMasterData',{});
+      if(data.sheetUrl) appSettings.sheetUrl=data.sheetUrl;
+      if(data.categories) appSettings.categoryListText=data.categories.join('\n');
+      if(data.categoryPresets) appSettings.categoryPresetsText=JSON.stringify(data.categoryPresets,null,2);
+      if(data.materials) appSettings.materialMasterJson=JSON.stringify(data.materials);
+      if(data.accessories) appSettings.accessoryMasterJson=JSON.stringify(data.accessories);
+      if(data.clauses) appSettings.clauseLibraryText=(data.clauses||[]).map(x=>`${x.title}::${x.text}`).join('\n---\n');
+      if(data.quickEstimate){ Object.assign(appSettings,data.quickEstimate); }
+      saveAppSettings(); render(); alert('Master data pulled from Apps Script.');
+    }catch(err){ alert(err.message); }
+  }
+  async function pushCurrentProjectToSheet(){ if(!project) return alert('No active project to push.'); try{ await callAppsScript('saveProject',{project}); alert('Current project pushed to Apps Script.'); }catch(err){ alert(err.message); } }
+  async function pullProjectsFromSheet(){ try{ const data=await callAppsScript('getProjects',{}); if(Array.isArray(data.projects)){ localStorage.setItem('moduquote_projects', JSON.stringify(data.projects)); renderSavedProjects(); alert('Projects pulled from Apps Script.'); } else alert('No projects returned by Apps Script.'); }catch(err){ alert(err.message); } }
+
+  function companyHeaderHtml(docTitle){
+    const name=(appSettings.companyName||'').trim();
+    const address=(appSettings.companyAddress||'').trim();
+    const contact=(appSettings.companyContact||'').trim();
+    const email=(appSettings.companyEmail||'').trim();
+    const website=(appSettings.companyWebsite||'').trim();
+    const info=[contact,email,website].filter(Boolean).join(' | ');
+    const brand=name || 'ModuQuote Pro';
+    const subLines=[address,info].filter(Boolean);
+    return `<div class="print-head"><div><div class="print-brand">${escapeHtml(brand)}</div>${subLines.map(line=>`<div class="muted">${escapeHtml(line)}</div>`).join('')}</div><div style="text-align:right"><div style="font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:700;text-transform:uppercase">${escapeHtml(docTitle||'Document')}</div></div></div>`;
+  }
+
+
+  const defaultProject=()=>({id:uid('PROJ'),clientName:'',projectName:'',location:'',date:new Date().toISOString().slice(0,10),quoteNo:`MQ-${new Date().getFullYear()}-${String(Math.floor(Math.random()*900)+100)}`,revisionNo:0,status:'Draft',quoteValidityDays:7,leadTimeDays:7,currency:'PHP',createdBy:'',notes:'',terms:appSettings.defaultTerms||'',pricingMode:'materials',quoteStatus:'Draft',acceptedAmountMode:'quoted',contractAmount:0,acceptedDate:'',payments:[],settings:{monthlyOverhead:0,workingDaysPerMonth:26,hoursPerDay:8,fuelPricePerLiter:0,distanceKm:0,deliveryCount:1,kmPerLiter:7,minimumLogisticsCharge:0,sopPercent:appSettings.defaultSopPercent,contingencyPercent:appSettings.defaultContingencyPercent,markupPercent:appSettings.defaultMarkupPercent},quickEstimate:{cabinetType:'base',length:2400,height:900,depth:600,finish:'laminated',tier:'mid',withCountertop:false,withSpecialHardware:false},items:[]});
+  let project=null; let draftProject=defaultProject(); let activeItemId=null; let itemTab='materials'; let dirty=false; let liveCollapsed = appSettings.defaultLiveTotalsState==='collapsed';
+
+  function markDirty(state=true){ dirty=state; byId('saveState').textContent=project? (state?'Unsaved changes':'Saved') : 'Ready'; }
+  function persistActiveProject(){ if(project){ localStorage.setItem('moduquote_active', JSON.stringify(project)); markDirty(false);} }
+  function loadActiveProject(){ try{return JSON.parse(localStorage.getItem('moduquote_active')||'null')}catch{return null} }
+  function getSavedProjects(){ try{return JSON.parse(localStorage.getItem('moduquote_projects')||'[]')}catch{return []} }
+  function saveProjectToLibrary(){ if(!project) return; const list=getSavedProjects(); const idx=list.findIndex(p=>p.id===project.id); const snapshot=deepCopy(project); snapshot.savedAt=new Date().toISOString(); if(idx>=0) list[idx]=snapshot; else list.unshift(snapshot); localStorage.setItem('moduquote_projects', JSON.stringify(list)); persistActiveProject(); renderSavedProjects(); }
+
+  function currentItem(){ return project?.items.find(i=>i.id===activeItemId) || null; }
+  function calcItem(item){
+    const materialTotal=item.materials.reduce((s,r)=>s+num(r.qty)*num(r.unitCost),0);
+    const accessoryTotal=item.accessories.reduce((s,r)=>s+num(r.qty)*num(r.unitCost),0);
+    const direct=materialTotal+accessoryTotal; let laborTotal=0;
+    if(item.labor.mode==='percent') laborTotal=direct*(num(item.labor.value)/100);
+    else if(item.labor.mode==='unit'){
+      const basis=(item.labor.autoBasis!==false ? laborBasisComputed(item) : (num(item.labor.basisValue)||0)); laborTotal=basis * num(item.labor.value);
+    } else laborTotal=num(item.labor.value);
+    return {materialTotal,accessoryTotal,direct,laborTotal,itemTotal:direct+laborTotal};
+  }
+  function calcQuickEstimate(q){
+    const refs={base:{h:900,d:600,rate:num(appSettings.qeRateBase)},overhead:{h:700,d:350,rate:num(appSettings.qeRateOverhead)},tall:{h:2100,d:600,rate:num(appSettings.qeRateTall)}};
+    const ref=refs[q?.cabinetType||'base']||refs.base;
+    const lm=Math.max(0,num(q?.length))/1000;
+    const sizeRatio=((Math.max(1,num(q?.height))*Math.max(1,num(q?.depth)))/(ref.h*ref.d));
+    const sizeFactor=Math.min(1.25, Math.max(0.85, Math.sqrt(sizeRatio)));
+    const finishMult=(q?.finish==='painted'?num(appSettings.qeFinishPainted):num(appSettings.qeFinishLaminated))||1;
+    const tierMap={low:num(appSettings.qeTierLow),mid:num(appSettings.qeTierMid),high:num(appSettings.qeTierHigh)};
+    const tierMult=tierMap[q?.tier||'mid']||1;
+    const baseCost=lm*ref.rate*sizeFactor*finishMult*tierMult;
+    const countertop=(q?.withCountertop? lm*num(appSettings.qeCountertopPerLm):0);
+    const beforeHardware=baseCost+countertop;
+    const special=(q?.withSpecialHardware? beforeHardware*(num(appSettings.qeSpecialHardwarePercent)/100):0);
+    const final=beforeHardware+special;
+    const rangePct=num(appSettings.qeRangePercent)/100;
+    return {lm,sizeFactor,baseCost,countertop,special,final,low:final*(1-rangePct),high:final*(1+rangePct)};
+  }
+  function calcEstimateItem(item){
+    const q={cabinetType:item?.estimate?.cabinetType||'base',length:num(item?.width),height:num(item?.height),depth:num(item?.depth),finish:item?.estimate?.finish||'laminated',tier:item?.estimate?.tier||'mid',withCountertop:!!item?.estimate?.withCountertop,withSpecialHardware:!!item?.estimate?.withSpecialHardware};
+    const s=calcQuickEstimate(q); const qty=Math.max(1,num(item?.qty||1));
+    return {...s, qty, total:s.final*qty, lowTotal:s.low*qty, highTotal:s.high*qty};
+  }
+  function calcProjectFor(p){
+    const itemStats=p.items.map(item=>({item,...calcItem(item)}));
+    const materials=itemStats.reduce((s,x)=>s+x.materialTotal,0), accessories=itemStats.reduce((s,x)=>s+x.accessoryTotal,0), direct=materials+accessories, labor=itemStats.reduce((s,x)=>s+x.laborTotal,0);
+    const manHours=(num(p.leadTimeDays)*num(p.settings.hoursPerDay)); const monthlyHours=num(p.settings.workingDaysPerMonth)*num(p.settings.hoursPerDay)||1;
+    const overhead=num(p.settings.monthlyOverhead)*(manHours/monthlyHours);
+    const fuelLiters=(num(p.settings.distanceKm)*Math.max(1,num(p.settings.deliveryCount)))/(Math.max(0.1,num(p.settings.kmPerLiter)));
+    const logisticsRaw=fuelLiters*num(p.settings.fuelPricePerLiter);
+    const logistics=Math.max(logisticsRaw,num(p.settings.minimumLogisticsCharge));
+    if(p.pricingMode==='estimate'){
+      const estimateStats=p.items.map(item=>({item,...calcEstimateItem(item)}));
+      const final=estimateStats.reduce((s,x)=>s+x.total,0);
+      const low=estimateStats.reduce((s,x)=>s+x.lowTotal,0);
+      const high=estimateStats.reduce((s,x)=>s+x.highTotal,0);
+      return {itemStats:estimateStats,estimateStats,materials:0,accessories:0,direct:0,labor:0,overhead:0,logistics:0,manHours:0,operationalBase:final,sop:0,contingency:0,markup:0,final,safeCost:final,quick:{low,high}};
+    }
+    const operationalBase=p.pricingMode==='labor_only' ? labor+overhead+logistics : direct+labor+overhead+logistics;
+    const sop=operationalBase*(num(p.settings.sopPercent)/100), afterSop=operationalBase+sop, contingency=afterSop*(num(p.settings.contingencyPercent)/100), safeCost=afterSop+contingency, markup=safeCost*(num(p.settings.markupPercent)/100), final=safeCost+markup;
+    return {itemStats,materials,accessories,direct,labor,overhead,logistics,manHours,operationalBase,sop,contingency,markup,final,safeCost,quick:null};
+  }
+  const calcProject=()=>project?calcProjectFor(project):{itemStats:[],materials:0,accessories:0,direct:0,labor:0,overhead:0,logistics:0,manHours:0,operationalBase:0,sop:0,contingency:0,markup:0,final:0,safeCost:0,quick:null};
+
+  function applyLayoutState(){
+    document.querySelector('.app').classList.toggle('sidebar-collapsed', appSettings.defaultSidebarState==='collapsed');
+    ['builderLayout','estimateLayout'].forEach(i=>{ const lb=byId(i); if(lb) lb.classList.toggle('live-collapsed', liveCollapsed); });
+    ['toggleLiveTotalsBtn','toggleEstimateTotalsBtn'].forEach(id=>{ const btn=byId(id); if(btn){ btn.textContent=liveCollapsed?'❮':'❯'; btn.title=liveCollapsed?'Expand live totals':'Collapse live totals'; }});
+  }
+
+  function enableProjectMode(enabled){
+    document.querySelectorAll('.project-only').forEach(el=>{ if(el.tagName==='BUTTON') el.disabled=!enabled; el.classList.toggle('disabled',!enabled); if(el.id==='topPricingMode') el.disabled=!enabled; });
+    byId('exitProjectBtn').disabled=!enabled; byId('duplicateProjectBtn').disabled=!enabled; byId('saveProjectBtn').disabled=!enabled; byId('topTotalBox').classList.toggle('hidden',!enabled);
+  }
+
+  function syncTop(){
+    const s=calcProject();
+    byId('topProjectName').textContent=project ? (project.projectName||'Untitled Project') : 'No Active Project';
+    byId('dashProject').textContent=project ? (project.projectName||'Untitled Project') : 'None'; byId('dashItems').textContent=project?project.items.length:0;
+    byId('dashMode').textContent=project ? ({materials:'Materials + Labor',labor_only:'Labor Only',estimate:'Budgetary Estimate'})[project.pricingMode] : '-';
+    byId('topFinalPrice').textContent=money(s.final); byId('dashFinal').textContent=money(s.final); byId('summaryFinalPrice').textContent=money(s.final); enableProjectMode(!!project);
+    if(project) byId('topPricingMode').value=project.pricingMode;
+  }
+
+  function bindDraftFields(){
+    const map={clientName:'clientName',projectName:'projectName',location:'projectLocation',date:'projectDate',quoteNo:'quoteNo',revisionNo:'revisionNo',status:'projectStatus',quoteValidityDays:'quoteValidityDays',leadTimeDays:'leadTimeDays',currency:'currency',createdBy:'createdBy',notes:'projectNotes',terms:'projectTerms',pricingMode:'projectPricingMode',quoteStatus:'quoteStatus',acceptedAmountMode:'acceptedAmountMode',contractAmount:'contractAmount',acceptedDate:'acceptedDate'};
+    Object.entries(map).forEach(([key,id])=>{ const el=byId(id); el.value=draftProject[key]??''; el.oninput=()=>{ draftProject[key]=(el.type==='number'? num(el.value):el.value); }; el.onchange=el.oninput; }); const modeEl=byId('acceptedAmountMode'); const amtEl=byId('contractAmount'); const statusEl=byId('quoteStatus'); const syncContractUi=()=>{ amtEl.disabled=(modeEl.value!=='custom'); if(modeEl.value!=='custom'){ const temp=deepCopy(draftProject); temp.acceptedAmountMode='quoted'; draftProject.contractAmount=calcProjectFor(temp).final||0; amtEl.value=draftProject.contractAmount||0; } if(statusEl.value!=='Accepted'){ draftProject.acceptedDate=''; byId('acceptedDate').value=''; } }; if(modeEl) modeEl.onchange=()=>{ draftProject.acceptedAmountMode=modeEl.value; syncContractUi(); }; if(statusEl) statusEl.onchange=()=>{ draftProject.quoteStatus=statusEl.value; syncContractUi(); }; syncContractUi();
+  }
+  function setDraftFromProject(){ draftProject=project?deepCopy(project):defaultProject(); bindDraftFields(); }
+  function loadDefaultTermsIntoDraft(){
+    const terms = (appSettings.defaultTerms||'').trim();
+    draftProject.terms = terms;
+    if(byId('projectTerms')) byId('projectTerms').value = terms;
+  }
+  function createProjectFromSetup(){
+    if(project && dirty && !confirm('Save current project before leaving it?')) return;
+    if(project && dirty) saveProjectToLibrary();
+    project=deepCopy(draftProject); if(!project.id) project.id=uid('PROJ'); if(!project.items) project.items=[]; if(!project.payments) project.payments=[]; if(!project.quoteStatus) project.quoteStatus='Draft'; if(!project.acceptedAmountMode) project.acceptedAmountMode='quoted'; if(project.contractAmount==null) project.contractAmount=0; if(!project.quickEstimate) project.quickEstimate=defaultProject().quickEstimate; activeItemId=project.items[0]?.id||null; markDirty(false); persistActiveProject(); render(); go(project.pricingMode==='estimate'?'quick':'builder');
+  }
+  function exitProject(){ if(!project) return go('dashboard'); if(dirty && confirm('Save current project before exiting?')) saveProjectToLibrary(); else if(dirty && !confirm('Exit without saving?')) return; project=null; activeItemId=null; localStorage.removeItem('moduquote_active'); draftProject=defaultProject(); bindDraftFields(); markDirty(false); render(); go('dashboard'); }
+
+  function defaultEstimateFields(){ return {cabinetType:'base',finish:'laminated',tier:'mid',withCountertop:false,withSpecialHardware:false}; }
+  function addItem(){ if(!project) return; if(project.pricingMode==='estimate'){ const item={id:uid('ITEM'),name:`Estimate Item ${project.items.length+1}`,category:'Cabinet',location:'',width:2400,height:900,depth:600,qty:1,remarks:'',materials:[],accessories:[],labor:{mode:'percent',value:appSettings.defaultLaborPercent,basisType:'lm',basisValue:0},estimate:defaultEstimateFields()}; project.items.push(item); activeItemId=item.id; markDirty(); render(); return; }
+    const item={id:uid('ITEM'),name:`Item ${project.items.length+1}`,category:'Kitchen Cabinet',location:'',width:'',height:'',depth:'',qty:1,remarks:'',materials:[],accessories:[],labor:{mode:'percent',value:appSettings.defaultLaborPercent,basisType:'lm',basisValue:0}}; applyCategoryPreset(item, item.category); project.items.push(item); activeItemId=item.id; markDirty(); render(); }
+  function duplicateItem(){ const item=currentItem(); if(!item) return; const copy=deepCopy(item); copy.id=uid('ITEM'); copy.name=`${item.name} Copy`; project.items.push(copy); activeItemId=copy.id; markDirty(); render(); }
+  function removeItem(id){ project.items=project.items.filter(i=>i.id!==id); if(activeItemId===id) activeItemId=project.items[0]?.id||null; markDirty(); render(); }
+  function applyCategoryPreset(item, category){ const preset=currentCategoryPresets()[category]; if(!preset) return; if(item.materials.length===0) item.materials=deepCopy(preset.materials||[]); if(item.accessories.length===0) item.accessories=deepCopy(preset.accessories||[]); }
+
+  function renderItemList(){ const wrap=byId('itemList'); if(!project?.items.length){ wrap.innerHTML='<div class="empty">No items yet. Add your first cabinet, wardrobe, vanity, or other scope item.</div>'; return;} wrap.innerHTML=project.items.map((item,idx)=>{ const s=calcItem(item); return `<div class="item-row ${item.id===activeItemId?'active':''}" data-item="${item.id}"><div class="space"><strong>${idx+1}. ${escapeHtml(item.name)}</strong><span class="pill">${money(s.itemTotal)}</span></div><div class="muted">${escapeHtml(item.category)}${item.location?' • '+escapeHtml(item.location):''}</div><div class="row"><span class="pill">Qty ${escapeHtml(String(item.qty||1))}</span><button class="btn ghost" data-delete-item="${item.id}">Delete</button></div></div>`; }).join('');
+    wrap.querySelectorAll('[data-item]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-delete-item]')) return; activeItemId=el.dataset.item; renderItemEditor(); renderItemList(); renderLiveTotals(); });
+    wrap.querySelectorAll('[data-delete-item]').forEach(btn=>btn.onclick=e=>{ e.stopPropagation(); removeItem(btn.dataset.deleteItem); }); }
+
+  function renderItemEditor(){ const wrap=byId('itemEditor'); const item=currentItem(); if(!item){ wrap.innerHTML='<div class="empty">Select or add an item to begin costing.</div>'; byId('builderItemTitle').textContent='Item Details'; byId('itemTotalPill').textContent=money(0); return; }
+    const s=calcItem(item); byId('builderItemTitle').textContent=item.name||'Item Details'; byId('itemTotalPill').textContent=money(s.itemTotal);
+    const categories=currentCategories(); const m=getMeasures(item);
+    wrap.innerHTML=`
+      <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px">
+        <div class="field compact"><label>Item Name</label><input id="it_name" value="${escapeAttr(item.name)}"></div>
+        <div class="field compact"><label>Category</label><select id="it_category">${categories.map(c=>`<option ${c===item.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select></div>
+        <div class="field compact"><label>Location</label><input id="it_location" value="${escapeAttr(item.location)}"></div>
+        <div class="field compact"><label>Quantity</label><input id="it_qty" type="number" min="1" step="1" value="${escapeAttr(item.qty)}"></div>
+        <div class="field compact"><label>Width (mm)</label><input id="it_width" type="number" value="${escapeAttr(item.width)}"></div>
+        <div class="field compact"><label>Height (mm)</label><input id="it_height" type="number" value="${escapeAttr(item.height)}"></div>
+        <div class="field compact"><label>Depth (mm)</label><input id="it_depth" type="number" value="${escapeAttr(item.depth)}"></div>
+        <div class="field compact"><label>Remarks</label><textarea id="it_remarks">${escapeHtml(item.remarks)}</textarea></div>
+      </div>
+      <div class="measure-pills"><span class="pill">LM ${m.lm.toFixed(2)}</span><span class="pill">SQM ${m.sqm.toFixed(2)}</span><span class="pill">Cubic ${m.cubic.toFixed(3)}</span></div>
+      <div class="subtabs" style="margin-top:14px"><button class="subtab ${itemTab==='materials'?'active':''}" data-subtab="materials">Materials</button><button class="subtab ${itemTab==='accessories'?'active':''}" data-subtab="accessories">Accessories</button><button class="subtab ${itemTab==='labor'?'active':''}" data-subtab="labor">Labor</button></div>
+      <div id="subtabPanel"></div>`;
+    bindItemField('name','it_name'); bindItemField('location','it_location'); bindItemField('qty','it_qty',v=>Math.max(1,parseInt(v||1,10))); bindItemField('width','it_width'); bindItemField('height','it_height'); bindItemField('depth','it_depth'); bindItemField('remarks','it_remarks');
+    byId('it_category').onchange=()=>{ const old=currentItem(); old.category=byId('it_category').value; applyCategoryPreset(old, old.category); markDirty(); render(); };
+    wrap.querySelectorAll('.subtab').forEach(btn=>btn.onclick=()=>{ itemTab=btn.dataset.subtab; renderItemEditor(); }); renderSubtabPanel(item);
+  }
+  function bindItemField(key,id,transform=v=>v){ const el=byId(id); el.oninput=()=>{ currentItem()[key]=transform(el.value); markDirty(); syncTop(); if(key==='name'){ byId('builderItemTitle').textContent=el.value||'Item Details'; renderItemList(); } if(key==='qty') renderLiveTotals(); }; el.onchange=()=>render(); }
+
+  function renderSubtabPanel(item){ const panel=byId('subtabPanel'); if(itemTab==='materials'){ panel.innerHTML=renderLinesTable(item.materials,'material'); bindLineTable(item,item.materials,'materials'); }
+    else if(itemTab==='accessories'){ panel.innerHTML=renderLinesTable(item.accessories,'accessory'); bindLineTable(item,item.accessories,'accessories'); }
+    else { panel.innerHTML=`<div class="grid g2"><div class="field"><label>Labor Mode</label><select id="labor_mode"><option value="percent" ${item.labor.mode==='percent'?'selected':''}>Percentage of direct cost</option><option value="fixed" ${item.labor.mode==='fixed'?'selected':''}>Fixed amount</option><option value="unit" ${item.labor.mode==='unit'?'selected':''}>Per unit basis</option></select></div><div class="field"><label id="laborLabel">${item.labor.mode==='percent'?'Labor %':item.labor.mode==='unit'?'Labor Rate':'Labor Amount'}</label><input id="labor_value" type="number" min="0" step="0.01" value="${item.labor.value}"></div></div>
+      <div class="grid g2 ${item.labor.mode==='unit'?'':'hidden'}" id="laborUnitGrid" style="margin-top:10px">
+        <div class="field"><label>Basis Type</label><select id="labor_basis_type"><option value="lm" ${item.labor.basisType==='lm'?'selected':''}>Linear meter</option><option value="sqm" ${item.labor.basisType==='sqm'?'selected':''}>Square meter</option><option value="pc" ${item.labor.basisType==='pc'?'selected':''}>Per piece</option></select></div>
+        <div class="field"><label>Basis Quantity</label><input id="labor_basis_value" type="number" min="0" step="0.01" value="${item.labor.basisValue||0}"></div>
+        <div class="field g2" style="grid-column:1 / -1"><label><input id="labor_auto_basis" type="checkbox" ${item.labor.autoBasis!==false?'checked':''}> Auto-compute basis from dimensions and quantity</label><div class="field-help">When on, basis quantity is computed automatically from LM, SQM, or quantity.</div></div>
+      </div>
+      <div class="card" style="margin-top:12px;background:var(--panel-2)"><div class="line" style="display:flex;justify-content:space-between"><span>Computed Basis</span><strong>${laborBasisComputed(item).toFixed(2)}</strong></div><div class="line" style="display:flex;justify-content:space-between"><span>Calculated Labor</span><strong>${money(calcItem(item).laborTotal)}</strong></div></div>`;
+      byId('labor_mode').onchange=()=>{ item.labor.mode=byId('labor_mode').value; if(item.labor.mode==='unit' && item.labor.basisValue==null) item.labor.basisValue=0; markDirty(); renderItemEditor(); renderLiveTotals(); };
+      byId('labor_value').oninput=()=>{ item.labor.value=num(byId('labor_value').value); markDirty(); renderLiveTotals(); }; byId('labor_value').onchange=()=>render();
+      if(byId('labor_basis_type')) byId('labor_basis_type').onchange=()=>{ item.labor.basisType=byId('labor_basis_type').value; if(item.labor.autoBasis!==false) item.labor.basisValue=laborBasisComputed(item); markDirty(); renderItemEditor(); renderLiveTotals(); };
+      if(byId('labor_auto_basis')) byId('labor_auto_basis').onchange=()=>{ item.labor.autoBasis=byId('labor_auto_basis').checked; if(item.labor.autoBasis!==false) item.labor.basisValue=laborBasisComputed(item); markDirty(); renderItemEditor(); renderLiveTotals(); };
+      if(item.labor.mode==='unit' && item.labor.autoBasis!==false){ item.labor.basisValue=laborBasisComputed(item); }
+      if(byId('labor_basis_value')) { byId('labor_basis_value').disabled=item.labor.autoBasis!==false; byId('labor_basis_value').oninput=()=>{ item.labor.basisValue=num(byId('labor_basis_value').value); markDirty(); renderLiveTotals(); }; byId('labor_basis_value').onchange=()=>render(); }
+    }}
+
+  function renderLinesTable(lines,type){
+    return `<div class="toolbar"><h3>${type==='material'?'Material Cost Breakdown':'Accessories and Hardware'}</h3><button class="btn primary" id="add_${type}_row">+ Add ${type==='material'?'Material':'Accessory'}</button></div>${lines.length?`<table><thead><tr><th>Mode</th><th>Preset</th><th>Description</th><th>Specification</th><th>Qty</th><th>Unit</th><th>Unit Cost</th><th>Total</th><th></th></tr></thead><tbody>${lines.map((r,idx)=>`<tr>
+      <td><div class="line-mode"><button class="icon-mini ${r.mode!=='custom'?'active':''}" data-line-mode="${idx}" data-mode="preset" title="Use preset">📦</button><button class="icon-mini ${r.mode==='custom'?'active':''}" data-line-mode="${idx}" data-mode="custom" title="Custom row">✏️</button></div></td>
+      <td><select data-line-preset="${idx}"><option value="">Select preset</option>${linePresetOptions(type)}</select></td>
+      <td><input data-line="desc" data-idx="${idx}" value="${escapeAttr(r.description)}"></td>
+      <td><input data-line="spec" data-idx="${idx}" value="${escapeAttr(r.specification)}"></td>
+      <td><input data-line="qty" data-idx="${idx}" type="number" min="0" step="0.01" value="${escapeAttr(r.qty)}"></td>
+      <td><input data-line="unit" data-idx="${idx}" value="${escapeAttr(r.unit)}"></td>
+      <td><input data-line="unitCost" data-idx="${idx}" type="number" min="0" step="0.01" value="${escapeAttr(r.unitCost)}"></td>
+      <td data-row-total="${idx}">${money(num(r.qty)*num(r.unitCost))}</td>
+      <td><button class="btn ghost" data-remove-line="${idx}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No rows yet.</div>'}`;
+  }
+  function bindLineTable(item,lines,key){
+    const type=key==='materials'?'material':'accessory';
+    byId(`add_${type}_row`).onclick=()=>{ lines.push({description:'',specification:'',qty:1,unit:type==='material'?'sheet':'pc',unitCost:0,mode:'preset'}); markDirty(); render(); };
+    document.querySelectorAll('[data-line-preset]').forEach(sel=>sel.onchange=()=>{
+      const idx=Number(sel.dataset.linePreset), arr=(type==='material'?currentMaterialsMaster():currentAccessoriesMaster()), ref=arr[Number(sel.value)];
+      if(!ref) return;
+      lines[idx]=Object.assign({},lines[idx],{description:ref.description||'',specification:ref.specification||'',unit:ref.unit||lines[idx].unit,unitCost:num(ref.unitCost),mode:'preset'});
+      markDirty(); render();
+    });
+    document.querySelectorAll('[data-line-mode]').forEach(btn=>btn.onclick=()=>{
+      const idx=Number(btn.dataset.lineMode); lines[idx].mode=btn.dataset.mode; markDirty(); render();
+    });
+    document.querySelectorAll('[data-line]').forEach(input=>{ input.oninput=()=>{ const idx=Number(input.dataset.idx), field=input.dataset.line, map={desc:'description',spec:'specification',qty:'qty',unit:'unit',unitCost:'unitCost'}; lines[idx][map[field]]=(field==='qty'||field==='unitCost')?num(input.value):input.value; const row=document.querySelector(`[data-row-total="${idx}"]`); if(row) row.textContent=money(num(lines[idx].qty)*num(lines[idx].unitCost)); byId('itemTotalPill').textContent=money(calcItem(item).itemTotal); markDirty(); renderLiveTotals(); }; input.onchange=()=>render(); });
+    document.querySelectorAll('[data-remove-line]').forEach(btn=>btn.onclick=()=>{ lines.splice(Number(btn.dataset.removeLine),1); markDirty(); render(); });
+  }
+
+  function renderLiveTotals(){ const s=calcProject(); if(project?.pricingMode==='estimate'){ byId('liveTotals').innerHTML=''; byId('estimateTotals').innerHTML=`<div class="line"><span>Items</span><strong>${project.items.length}</strong></div><div class="line"><span>Output mode</span><strong>${appSettings.qeOutputMode==='range'?'Range':'Fixed'}</strong></div><div class="line"><span>Project estimate</span><strong>${estimateDisplay(s.final,s.quick?.low||0,s.quick?.high||0)}</strong></div><div class="line"><span>Fixed basis</span><strong>${money(s.final)}</strong></div>`; }
+    else { byId('liveTotals').innerHTML=`<div class="line"><span>Materials</span><strong>${project?.pricingMode==='labor_only'?'Excluded':money(s.materials)}</strong></div><div class="line"><span>Accessories</span><strong>${project?.pricingMode==='labor_only'?'Excluded':money(s.accessories)}</strong></div><div class="line"><span>Labor</span><strong>${money(s.labor)}</strong></div><div class="line"><span>Logistics</span><strong>${money(s.logistics)}</strong></div><div class="line"><span>Overhead</span><strong>${money(s.overhead)}</strong></div><div class="line"><span>Final</span><strong>${money(s.final)}</strong></div>`; if(byId('estimateTotals')) byId('estimateTotals').innerHTML=''; }
+    syncTop(); }
+  function renderSummary(){ const s=calcProject(); byId('summaryBreakdown').innerHTML=project?.pricingMode==='estimate' ? `<div class="line"><span>Estimate items</span><strong>${project.items.length}</strong></div><div class="line"><span>Output mode</span><strong>${appSettings.qeOutputMode==='range'?'Budgetary Range':'Fixed Cost'}</strong></div><div class="line"><span>Fixed basis</span><strong>${money(s.final)}</strong></div><div class="line"><span>Budgetary Estimate</span><strong class="grand">${estimateDisplay(s.final,s.quick?.low||0,s.quick?.high||0)}</strong></div>` : `<div class="line"><span>Materials</span><strong>${project?.pricingMode==='labor_only'?'Excluded from pricing':money(s.materials)}</strong></div><div class="line"><span>Accessories</span><strong>${project?.pricingMode==='labor_only'?'Excluded from pricing':money(s.accessories)}</strong></div><div class="line"><span>Direct Cost</span><strong>${project?.pricingMode==='labor_only'?'Excluded from pricing':money(s.direct)}</strong></div><div class="line"><span>Labor</span><strong>${money(s.labor)}</strong></div><div class="line"><span>Man-hours basis</span><strong>${s.manHours.toFixed(2)} hrs</strong></div><div class="line"><span>Project Overhead</span><strong>${money(s.overhead)}</strong></div><div class="line"><span>Logistics</span><strong>${money(s.logistics)}</strong></div><div class="line"><span>Contractor SOP</span><strong>${money(s.sop)}</strong></div><div class="line"><span>Contingency</span><strong>${money(s.contingency)}</strong></div><div class="line"><span>Markup</span><strong>${money(s.markup)}</strong></div><div class="line"><span>Final Selling Price</span><strong class="grand">${money(s.final)}</strong></div>`;
+    if(!project) return;
+    const ids=['monthlyOverhead','workingDaysPerMonth','hoursPerDay','fuelPricePerLiter','distanceKm','deliveryCount','kmPerLiter','minimumLogisticsCharge','sopPercent','contingencyPercent','markupPercent'];
+    ids.forEach(id=>{ byId(id).value=project.settings[id]; byId(id).oninput=()=>{ project.settings[id]=num(byId(id).value); markDirty(); renderSummary(); renderLiveTotals(); renderPrint(); }; });
+  }
+  function buildBoq(){ if(!project) return []; const map=new Map(); project.items.forEach(item=>{ [...item.materials,...item.accessories].forEach(line=>{ const k=`${line.description}||${line.specification}||${line.unit}`; if(!map.has(k)) map.set(k,{description:line.description,specification:line.specification,unit:line.unit,qty:0}); map.get(k).qty+=num(line.qty); }); }); return [...map.values()].filter(x=>x.description).sort((a,b)=>a.description.localeCompare(b.description)); }
+  function renderBoq(){ const rows=buildBoq(); byId('boqTableWrap').innerHTML=rows.length?`<table><thead><tr><th>Description</th><th>Specification</th><th>Total Qty</th><th>Unit</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(r.description)}</td><td>${escapeHtml(r.specification||'')}</td><td>${r.qty}</td><td>${escapeHtml(r.unit||'')}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No BOQ data yet. Add material or accessory rows under your items.</div>'; }
+
+  function syncPrintPrefToggles(){
+    ['printShowMeta','printShowTerms','printCompactTables','printShowRemarks'].forEach(id=>{ const el=byId(id), quick=byId(id+'Quick'); if(el && quick){ quick.checked=!!appSettings[id]; quick.onchange=()=>{ appSettings[id]=quick.checked; if(el) el.checked=quick.checked; saveAppSettings(); renderPrint(); }; } });
+  }
+  function renderPrint(){ const mode=document.querySelector('input[name="printMode"]:checked')?.value||'internal'; if(!project){ byId('printView').innerHTML='<div class="empty">No active project.</div>'; return;} const s=calcProject(), boq=buildBoq(); const docTitle = mode==='client' ? 'Quotation' : (mode==='boq' ? 'Bill of Quantities' : 'Internal Costing Sheet'); const compactStyle=appSettings.printCompactTables?'font-size:12px':''; const metaBlock=appSettings.printShowMeta?`<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 18px 0"><div><div><strong>Quote No:</strong> ${escapeHtml(project.quoteNo)}</div><div><strong>Date:</strong> ${escapeHtml(project.date)}</div><div><strong>Revision:</strong> ${escapeHtml(String(project.revisionNo))}</div></div><div style="text-align:right"><div><strong>Validity:</strong> ${escapeHtml(String(project.quoteValidityDays||0))} days</div><div><strong>Lead Time:</strong> ${escapeHtml(String(project.leadTimeDays||0))} days</div></div></div><div class="grid g3" style="margin-bottom:18px"><div><strong>Client:</strong><br>${escapeHtml(project.clientName||'-')}</div><div><strong>Project:</strong><br>${escapeHtml(project.projectName||'-')}</div><div><strong>Location:</strong><br>${escapeHtml(project.location||'-')}</div></div>`:''; const header=companyHeaderHtml(docTitle)+metaBlock;
+    let body='';
+    if(mode==='boq') body=`<h3>Purchase List / BOQ</h3>${boq.length?`<table style="${compactStyle}"><thead><tr><th>Description</th><th>Specification</th><th>Total Qty</th><th>Unit</th></tr></thead><tbody>${boq.map(r=>`<tr><td>${escapeHtml(r.description)}</td><td>${escapeHtml(r.specification||'')}</td><td>${r.qty}</td><td>${escapeHtml(r.unit||'')}</td></tr>`).join('')}</tbody></table>`:'<div>No BOQ rows.</div>'}`;
+    else if(mode==='client' && project.pricingMode==='estimate') body=`<h3>Budgetary Estimate</h3><table style="${compactStyle}"><thead><tr><th>Description</th><th>Qty</th><th>Estimated Amount</th></tr></thead><tbody>${s.itemStats.map(x=>`<tr><td>${escapeHtml(x.item.name||'Estimate Item')}${appSettings.printShowRemarks && x.item.remarks?`<div class="tiny-note">${escapeHtml(x.item.remarks)}</div>`:''}</td><td>${escapeHtml(String(x.item.qty||1))}</td><td>${estimateDisplay(x.total,x.lowTotal,x.highTotal)}</td></tr>`).join('')}</tbody></table><div style="margin-top:16px;text-align:right"><div class="muted">Budgetary output</div><div class="grand">${estimateDisplay(s.final,s.quick?.low||0,s.quick?.high||0)}</div><div class="tiny muted">Fixed basis: ${money(s.final)}</div></div>${appSettings.printShowTerms && (project.terms||'').trim()?`<div style="margin-top:28px"><h3 style="margin-bottom:10px">Terms &amp; Conditions</h3><div style="white-space:pre-line;line-height:1.6;font-size:13px">${escapeHtml(project.terms)}</div></div>`:''}`;
+    else if(mode==='client') body=`<h3>Client Quotation</h3><table style="${compactStyle}"><thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${project.items.map((item,idx)=>`<tr><td>${idx+1}</td><td>${escapeHtml(item.name)}${appSettings.printShowRemarks && item.remarks?`<div class="tiny-note">${escapeHtml(item.remarks)}</div>`:''}</td><td>${escapeHtml(String(item.qty||1))}</td><td>${money(calcItem(item).itemTotal)}</td></tr>`).join('')}</tbody></table><div style="margin-top:16px;text-align:right"><div class="muted">Total Contract Price</div><div class="grand">${money(s.final)}</div></div>${appSettings.printShowTerms && (project.terms||'').trim()?`<div style="margin-top:28px"><h3 style="margin-bottom:10px">Terms &amp; Conditions</h3><div style="white-space:pre-line;line-height:1.6;font-size:13px">${escapeHtml(project.terms)}</div></div>`:''}`;
+    else body=`<h3>Internal Costing Sheet</h3><table style="${compactStyle}"><thead><tr><th>#</th><th>Item</th><th>Materials</th><th>Accessories</th><th>Labor</th><th>Total</th></tr></thead><tbody>${project.items.map((item,idx)=>{ const x=calcItem(item); return `<tr><td>${idx+1}</td><td>${escapeHtml(item.name)}${appSettings.printShowRemarks && item.remarks?`<div class="tiny-note">${escapeHtml(item.remarks)}</div>`:''}</td><td>${project.pricingMode==='labor_only'?'Excluded':money(x.materialTotal)}</td><td>${project.pricingMode==='labor_only'?'Excluded':money(x.accessoryTotal)}</td><td>${money(x.laborTotal)}</td><td>${money(x.itemTotal)}</td></tr>`; }).join('')}</tbody></table><div style="margin-top:18px;display:grid;gap:8px;max-width:430px;margin-left:auto"><div class="space"><span>Direct Cost</span><strong>${project.pricingMode==='labor_only'?'Excluded':money(s.direct)}</strong></div><div class="space"><span>Labor</span><strong>${money(s.labor)}</strong></div><div class="space"><span>Logistics</span><strong>${money(s.logistics)}</strong></div><div class="space"><span>Overhead</span><strong>${money(s.overhead)}</strong></div><div class="space"><span>SOP</span><strong>${money(s.sop)}</strong></div><div class="space"><span>Contingency</span><strong>${money(s.contingency)}</strong></div><div class="space"><span>Markup</span><strong>${money(s.markup)}</strong></div><div class="space" style="border-top:2px solid var(--primary);padding-top:10px"><span><strong>Final Selling Price</strong></span><strong class="grand">${money(s.final)}</strong></div></div>`;
+    byId('printView').innerHTML=header+body;
+  }
+  function printSelectedForm(){ renderPrint(); const content=byId('printView').outerHTML; const w=window.open('','_blank','width=900,height=700'); w.document.write(`<!doctype html><html><head><title>Print</title><style>body{font-family:Inter,Segoe UI,Arial,sans-serif;padding:24px;color:#1C1C1C} table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:10px 8px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top} .print-wrap{background:#fff} .print-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #5A3E2B}.print-brand{font-weight:800;font-size:26px;color:#5A3E2B}.print-brand small{display:block;font-size:12px;letter-spacing:2px;color:#7A6E62;font-weight:700}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.space{display:flex;justify-content:space-between}.grand{font-size:26px;font-weight:800}@media print{body{padding:0}}</style></head><body>${content}</body></html>`); w.document.close(); w.focus(); setTimeout(()=>w.print(),150); }
+
+  function renderSavedProjects(){
+    let list=getSavedProjects();
+    const q=(byId('dashboardSearch')?.value||'').toLowerCase().trim();
+    const status=(byId('dashboardStatusFilter')?.value||'all');
+    const sort=(byId('dashboardSort')?.value||'saved_desc');
+    if(q) list=list.filter(p=>[p.quoteNo,p.clientName,p.projectName].join(' ').toLowerCase().includes(q));
+    if(status!=='all') list=list.filter(p=>(p.status===status || p.quoteStatus===status));
+    const amountFor=p=> calcProjectFor(p).final || 0;
+    list.sort((a,b)=>{
+      if(sort==='saved_asc') return String(a.savedAt||'').localeCompare(String(b.savedAt||''));
+      if(sort==='quote_asc') return String(a.quoteNo||'').localeCompare(String(b.quoteNo||''));
+      if(sort==='client_asc') return String(a.clientName||'').localeCompare(String(b.clientName||''));
+      if(sort==='amount_desc') return amountFor(b)-amountFor(a);
+      if(sort==='amount_asc') return amountFor(a)-amountFor(b);
+      return String(b.savedAt||'').localeCompare(String(a.savedAt||''));
+    });
+    const dash=byId('dashboardProjects');
+    dash.innerHTML=list.length?`<table class="dash-table"><thead><tr><th>Quote No</th><th>Client</th><th>Project</th><th>Status</th><th>Total</th></tr></thead><tbody>${list.map(p=>`<tr data-open="${p.id}"><td><strong>${escapeHtml(p.quoteNo||'')}</strong><div class="micro muted">${escapeHtml((p.savedAt||'').slice(0,10)||'')}</div></td><td>${escapeHtml(p.clientName||'-')}</td><td>${escapeHtml(p.projectName||'-')}</td><td><span class="status-dot"></span>${escapeHtml(p.quoteStatus||p.status||'-')}</td><td>${money(amountFor(p))}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No saved projects yet.</div>';
+    dash.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>openProject(el.dataset.open));
+  }
+  function openProject(id){ if(project && dirty && confirm('Save current project before opening another one?')) saveProjectToLibrary(); else if(project && dirty && !confirm('Open another project without saving current changes?')) return; const found=getSavedProjects().find(p=>p.id===id); if(!found) return; project=deepCopy(found); activeItemId=project.items[0]?.id||null; markDirty(false); setDraftFromProject(); localStorage.setItem('moduquote_active', JSON.stringify(project)); render(); go(project.pricingMode==='estimate'?'quick':'builder'); }
+
+  function getContractAmount(p=project){
+    if(!p) return 0;
+    const s=calcProjectFor(p);
+    if((p.quoteStatus||'Draft')!=='Accepted') return 0;
+    return p.acceptedAmountMode==='custom' ? num(p.contractAmount) : num(s.final);
+  }
+  function computePaymentSummary(p=project){
+    if(!p) return {contractAmount:0,totalPaid:0,balance:0,status:'Unpaid',partialCount:0};
+    const contractAmount=getContractAmount(p);
+    let running=contractAmount;
+    const payments=(p.payments||[]).map((pay,idx)=>{
+      running -= num(pay.amount);
+      return Object.assign({}, pay, {index:idx+1, balanceAfter:running});
+    });
+    const totalPaid=payments.reduce((s,x)=>s+num(x.amount),0);
+    const balance=contractAmount-totalPaid;
+    let status='Unpaid';
+    if(contractAmount===0) status='Pending Acceptance';
+    else if(totalPaid===0) status='Unpaid';
+    else if(balance>0) status='Partially Paid';
+    else if(balance===0) status='Fully Paid';
+    else status='Overpaid';
+    const partialCount=payments.filter(x=>x.type==='Partial Payment').length;
+    return {contractAmount,totalPaid,balance,status,partialCount,payments};
+  }
+  let selectedReceiptId=null;
+  function paymentLabel(pay){ return pay.type==='Partial Payment' ? `Partial Payment ${pay.partialNo||''}`.trim() : pay.type; }
+  function buildReceiptHtml(pay,p=project){
+    if(!pay||!p) return '<div class="empty">No receipt selected.</div>';
+    const ps=computePaymentSummary(p);
+    return `${companyHeaderHtml('Acknowledgement Receipt')}<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin:0 0 16px 0"><div><div class="muted">Receipt No. ${escapeHtml(pay.receiptNo||'-')}</div></div><div><div><strong>Date:</strong> ${escapeHtml(pay.date||'-')}</div><div><strong>Quote No:</strong> ${escapeHtml(p.quoteNo||'-')}</div></div></div>
+    <div class="grid g2" style="margin-bottom:16px"><div><strong>Received From</strong><br>${escapeHtml(p.clientName||'-')}</div><div><strong>Project</strong><br>${escapeHtml(p.projectName||'-')}</div><div><strong>Payment Type</strong><br>${escapeHtml(paymentLabel(pay))}</div><div><strong>Payment Method</strong><br>${escapeHtml(pay.method||'-')}</div><div><strong>Reference No.</strong><br>${escapeHtml(pay.reference||'-')}</div><div><strong>Received By</strong><br>${escapeHtml(pay.receivedBy||'-')}</div></div>
+    <table><thead><tr><th>Description</th><th style="width:180px">Amount</th></tr></thead><tbody><tr><td>${escapeHtml(paymentLabel(pay))} for ${escapeHtml(p.projectName||'project')}</td><td>${money(pay.amount)}</td></tr></tbody></table>
+    <div class="totals-list" style="margin-top:16px"><div class="line"><span>Contract Amount</span><strong>${money(ps.contractAmount)}</strong></div><div class="line"><span>Total Paid Including This Receipt</span><strong>${money(ps.totalPaid)}</strong></div><div class="line"><span>Remaining Balance</span><strong>${money(pay.balanceAfter)}</strong></div></div>
+    <div style="margin-top:22px"><strong>Remarks:</strong><br>${escapeHtml(pay.notes||'-')}</div><div style="margin-top:28px">_____________________________<br>Authorized Signature</div>`;
+  }
+  function renderAccounting(){
+    const locked=byId('accountingLocked'), formWrap=byId('paymentFormWrap');
+    if(!project){ byId('accountingSummary').innerHTML='<div class="empty">No active project.</div>'; byId('paymentHistory').innerHTML=''; byId('receiptPreview').innerHTML='<div class="empty">No active project.</div>'; if(locked) locked.style.display='none'; return; }
+    const ps=computePaymentSummary(project);
+    const accepted=(project.quoteStatus==='Accepted');
+    if(locked) locked.style.display=accepted?'none':'block';
+    if(formWrap) formWrap.style.display=accepted?'block':'none';
+    const quoted=calcProject().final;
+    byId('accountingSummary').innerHTML=`<div class="totals-list"><div class="line"><span>Quoted Amount</span><strong>${money(quoted)}</strong></div><div class="line"><span>Contract Amount</span><strong>${money(ps.contractAmount)}</strong></div><div class="line"><span>Total Paid</span><strong>${money(ps.totalPaid)}</strong></div><div class="line"><span>Remaining Balance</span><strong class="grand">${money(ps.balance)}</strong></div><div class="line"><span>Payment Status</span><strong>${escapeHtml(ps.status)}</strong></div><div class="line"><span>Partial Payments Recorded</span><strong>${ps.partialCount}</strong></div></div>`;
+    byId('paymentCountPill').textContent=`${ps.payments.length} payment${ps.payments.length===1?'':'s'}`;
+    if(ps.payments.length===0){ byId('paymentHistory').innerHTML='<div class="empty">No payments recorded yet.</div>'; if(!selectedReceiptId) byId('receiptPreview').innerHTML='<div class="empty">No receipt selected.</div>'; }
+    else {
+      byId('paymentHistory').innerHTML=`<table><thead><tr><th>Date</th><th>Receipt No.</th><th>Type</th><th>Amount</th><th>Balance After</th><th></th></tr></thead><tbody>${ps.payments.map(pay=>`<tr class="${pay.id===selectedReceiptId?'active':''}"><td>${escapeHtml(pay.date||'-')}</td><td>${escapeHtml(pay.receiptNo||'-')}</td><td>${escapeHtml(paymentLabel(pay))}</td><td>${money(pay.amount)}</td><td>${money(pay.balanceAfter)}</td><td><button class="btn ghost" data-view-receipt="${pay.id}">View</button></td></tr>`).join('')}</tbody></table>`;
+      byId('paymentHistory').querySelectorAll('[data-view-receipt]').forEach(btn=>btn.onclick=()=>{ selectedReceiptId=btn.dataset.viewReceipt; renderAccounting(); });
+      const selected=ps.payments.find(x=>x.id===selectedReceiptId) || ps.payments[ps.payments.length-1];
+      selectedReceiptId=selected.id;
+      byId('receiptPreview').innerHTML=buildReceiptHtml(selected, project);
+    }
+    if(byId('payDate') && !byId('payDate').value) byId('payDate').value=new Date().toISOString().slice(0,10);
+  }
+  function addPayment(){
+    if(!project) return; if(project.quoteStatus!=='Accepted') return alert('Accept the quote in Project Setup first.');
+    const ps=computePaymentSummary(project);
+    const type=byId('payType').value; const amount=num(byId('payAmount').value); if(amount<=0) return alert('Enter a valid payment amount.');
+    if(ps.balance>0 && amount>ps.balance && !confirm('This payment exceeds the remaining balance. Continue?')) return;
+    const partialNo=type==='Partial Payment' ? ps.partialCount+1 : null;
+    const idx=(project.payments||[]).length+1;
+    const pay={id:uid('PAY'),receiptNo:`AR-${(project.quoteNo||project.id).replace(/\s+/g,'-')}-${String(idx).padStart(2,'0')}`,date:byId('payDate').value||new Date().toISOString().slice(0,10),type,partialNo,amount,method:byId('payMethod').value||'',reference:byId('payRef').value||'',receivedBy:byId('payReceivedBy').value||'',notes:byId('payNotes').value||''};
+    project.payments=project.payments||[]; project.payments.push(pay); markDirty();
+    ['payAmount','payMethod','payRef','payNotes'].forEach(id=>byId(id).value='');
+    renderAccounting();
+  }
+  function printSelectedReceipt(){
+    if(!project) return; const ps=computePaymentSummary(project); const selected=ps.payments.find(x=>x.id===selectedReceiptId) || ps.payments[ps.payments.length-1]; if(!selected) return alert('No receipt selected.');
+    const w=window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Acknowledgement Receipt</title><style>body{font-family:Arial;padding:24px;color:#111}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border:1px solid #bbb;padding:8px;text-align:left}.print-brand{font-size:24px;font-weight:700}.muted{color:#666}.totals-list .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #ddd}</style></head><body>${buildReceiptHtml(selected, project)}</body></html>`);
+    w.document.close(); w.focus(); w.print();
+  }
+  function renderSettings(){
+    const map={sheetUrl:'sheetUrl',sheetUrlData:'sheetUrl',appsScriptUrl:'appsScriptUrl',companyName:'companyName',companyAddress:'companyAddress',companyContact:'companyContact',companyEmail:'companyEmail',companyWebsite:'companyWebsite',defaultSidebarState:'defaultSidebarState',defaultLiveTotalsState:'defaultLiveTotalsState',defaultLaborPercent:'defaultLaborPercent',defaultSopPercent:'defaultSopPercent',defaultContingencyPercent:'defaultContingencyPercent',defaultMarkupPercent:'defaultMarkupPercent',qeRateBase:'qeRateBase',qeRateOverhead:'qeRateOverhead',qeRateTall:'qeRateTall',qeTierLow:'qeTierLow',qeTierMid:'qeTierMid',qeTierHigh:'qeTierHigh',qeFinishLaminated:'qeFinishLaminated',qeFinishPainted:'qeFinishPainted',qeCountertopPerLm:'qeCountertopPerLm',qeSpecialHardwarePercent:'qeSpecialHardwarePercent',qeRangePercent:'qeRangePercent',defaultTerms:'defaultTerms',categoryListText:'categoryListText',categoryPresetsText:'categoryPresetsText',clauseLibraryText:'clauseLibraryText'};
+    Object.entries(map).forEach(([k,id])=>{ const el=byId(id); if(!el) return; if(el.type==='checkbox') el.checked=!!appSettings[k]; else el.value=appSettings[k] ?? ''; const handler=()=>{ appSettings[k]=el.type==='number'?num(el.value):(el.type==='checkbox'?el.checked:el.value); saveAppSettings(); if(k==='defaultLiveTotalsState') liveCollapsed=appSettings.defaultLiveTotalsState==='collapsed'; applyLayoutState(); render(); }; el.oninput=handler; el.onchange=handler; });
+    const auto=byId('autoSaveToggle'); if(auto){ auto.checked=!!appSettings.autoSave; auto.onchange=()=>{ appSettings.autoSave=auto.checked; saveAppSettings(); }; }
+    ['printShowMeta','printShowTerms','printCompactTables','printShowRemarks'].forEach(id=>{ const el=byId(id); if(el){ el.checked=!!appSettings[id]; el.onchange=()=>{ appSettings[id]=el.checked; saveAppSettings(); syncPrintPrefToggles(); renderPrint(); }; }});
+    syncPrintPrefToggles();
+    const fixed=byId('qeOutputModeFixed'), range=byId('qeOutputModeRange');
+    if(fixed && range){ fixed.checked=appSettings.qeOutputMode==='fixed'; range.checked=appSettings.qeOutputMode!=='fixed'; [fixed,range].forEach(r=>r.onchange=()=>{ if(r.checked){ appSettings.qeOutputMode=r.value; saveAppSettings(); render(); }}); }
+  }
+
+  function renderQuickEstimate(){
+    const list=byId('estimateItemList'), wrap=byId('estimateEditor');
+    if(!list||!wrap) return;
+    if(!project || project.pricingMode!=='estimate'){ list.innerHTML='<div class="empty">No active budgetary estimate project.</div>'; wrap.innerHTML='<div class="empty">Create or open a Budgetary Estimate project.</div>'; return; }
+    if(!project.items.length){ list.innerHTML='<div class="empty">No estimate items yet. Add your first cabinet item.</div>'; wrap.innerHTML='<div class="empty">Add an estimate item to begin.</div>'; byId('estimateItemTitle').textContent='Estimate Item'; byId('estimateItemPill').textContent=money(0); return; }
+    list.innerHTML=project.items.map((item,idx)=>{ const s=calcEstimateItem(item); return `<div class="item-row ${item.id===activeItemId?'active':''}" data-est-item="${item.id}"><div class="space"><strong>${idx+1}. ${escapeHtml(item.name)}</strong><span class="pill">${estimateDisplay(s.total,s.lowTotal,s.highTotal)}</span></div><div class="muted">${escapeHtml(({base:'Base Cabinet',overhead:'Overhead Cabinet',tall:'Tall Cabinet'}[item.estimate?.cabinetType||'base']))}${item.location?' • '+escapeHtml(item.location):''}</div><div class="row"><span class="pill">Qty ${escapeHtml(String(item.qty||1))}</span><button class="btn ghost" data-delete-est-item="${item.id}">Delete</button></div></div>`; }).join('');
+    list.querySelectorAll('[data-est-item]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-delete-est-item]')) return; activeItemId=el.dataset.estItem; renderQuickEstimate(); renderLiveTotals(); renderSummary(); renderPrint(); });
+    list.querySelectorAll('[data-delete-est-item]').forEach(btn=>btn.onclick=e=>{ e.stopPropagation(); removeItem(btn.dataset.deleteEstItem); });
+    const item=currentItem(); if(!item) return;
+    if(!item.estimate) item.estimate=defaultEstimateFields();
+    const s=calcEstimateItem(item);
+    byId('estimateItemTitle').textContent=item.name||'Estimate Item';
+    byId('estimateItemPill').textContent=estimateDisplay(s.total,s.lowTotal,s.highTotal);
+    wrap.innerHTML=`
+      <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px">
+        <div class="field compact"><label>Item Name</label><input id="qe_item_name" value="${escapeAttr(item.name)}"></div>
+        <div class="field compact"><label>Cabinet Type</label><select id="qe_item_type"><option value="base" ${item.estimate.cabinetType==='base'?'selected':''}>Base Cabinet</option><option value="overhead" ${item.estimate.cabinetType==='overhead'?'selected':''}>Overhead Cabinet</option><option value="tall" ${item.estimate.cabinetType==='tall'?'selected':''}>Tall Cabinet</option></select></div>
+        <div class="field compact"><label>Location</label><input id="qe_item_location" value="${escapeAttr(item.location||'')}"></div>
+        <div class="field compact"><label>Quantity</label><input id="qe_item_qty" type="number" min="1" step="1" value="${escapeAttr(item.qty||1)}"></div>
+        <div class="field compact"><label>Length (mm)</label><input id="qe_item_width" type="number" min="0" step="1" value="${escapeAttr(item.width||0)}"></div>
+        <div class="field compact"><label>Height (mm)</label><input id="qe_item_height" type="number" min="0" step="1" value="${escapeAttr(item.height||0)}"></div>
+        <div class="field compact"><label>Depth (mm)</label><input id="qe_item_depth" type="number" min="0" step="1" value="${escapeAttr(item.depth||0)}"></div>
+        <div class="field compact"><label>Finish</label><select id="qe_item_finish"><option value="laminated" ${item.estimate.finish==='laminated'?'selected':''}>Laminated</option><option value="painted" ${item.estimate.finish==='painted'?'selected':''}>Painted</option></select></div>
+        <div class="field compact"><label>Tier</label><select id="qe_item_tier"><option value="low" ${item.estimate.tier==='low'?'selected':''}>Low</option><option value="mid" ${item.estimate.tier==='mid'?'selected':''}>Mid</option><option value="high" ${item.estimate.tier==='high'?'selected':''}>High</option></select></div>
+        <div class="field compact"><label>Remarks</label><textarea id="qe_item_remarks">${escapeHtml(item.remarks||'')}</textarea></div>
+      </div>
+      <div class="row" style="margin-top:12px;gap:10px;flex-wrap:wrap"><label class="pill"><input id="qe_item_countertop" type="checkbox" ${item.estimate.withCountertop?'checked':''}> &nbsp;With countertop</label><label class="pill"><input id="qe_item_special" type="checkbox" ${item.estimate.withSpecialHardware?'checked':''}> &nbsp;With special hardware</label></div>
+      <div class="quick-result" style="margin-top:16px"><div class="muted">${appSettings.qeOutputMode==='range'?'Budgetary Range':'Fixed Cost'}</div><div class="quick-range">${estimateDisplay(s.total,s.lowTotal,s.highTotal)}</div><div class="totals-list" style="margin-top:10px"><div class="line"><span>Linear meters</span><strong>${s.lm.toFixed(2)} lm</strong></div><div class="line"><span>Size adjustment</span><strong>${s.sizeFactor.toFixed(2)}x</strong></div><div class="line"><span>Unit fixed basis</span><strong>${money(s.final)}</strong></div><div class="line"><span>Quantity</span><strong>${item.qty||1}</strong></div><div class="line"><span>Item output</span><strong class="grand">${estimateDisplay(s.total,s.lowTotal,s.highTotal)}</strong></div></div></div>`;
+    const bind=(id, fn)=>{ const el=byId(id); if(el){ el.oninput=el.onchange=()=>{ fn(el); markDirty(); renderQuickEstimate(); renderLiveTotals(); renderSummary(); renderPrint(); syncTop(); }; }};
+    bind('qe_item_name', el=>item.name=el.value); bind('qe_item_location', el=>item.location=el.value); bind('qe_item_qty', el=>item.qty=Math.max(1,parseInt(el.value||1,10))); bind('qe_item_width', el=>item.width=num(el.value)); bind('qe_item_height', el=>item.height=num(el.value)); bind('qe_item_depth', el=>item.depth=num(el.value)); bind('qe_item_finish', el=>item.estimate.finish=el.value); bind('qe_item_tier', el=>item.estimate.tier=el.value); bind('qe_item_type', el=>item.estimate.cabinetType=el.value); bind('qe_item_remarks', el=>item.remarks=el.value); bind('qe_item_countertop', el=>item.estimate.withCountertop=el.checked); bind('qe_item_special', el=>item.estimate.withSpecialHardware=el.checked);
+  }
+
+  function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  const escapeAttr=escapeHtml;
+  function renderClauseSelect(){
+    const sel=byId('projectClauseSelect'); if(!sel) return;
+    const lib=currentClauseLibrary(); sel.innerHTML='<option value="">Select clause to insert</option>' + lib.map((c,i)=>`<option value="${i}">${escapeHtml(c.title)}</option>`).join('');
+  }
+  function render(){ bindDraftFields(); renderClauseSelect(); renderItemList(); renderItemEditor(); renderLiveTotals(); renderSummary(); renderQuickEstimate(); renderBoq(); renderPrint(); renderAccounting(); renderSavedProjects(); renderSettings(); syncTop(); applyLayoutState(); }
+  function go(name){ if(!project && ['builder','summary','quick','boq','print'].includes(name)) return; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); byId(`screen-${name}`).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.screen===name)); }
+
+  document.querySelectorAll('.nav-btn').forEach(btn=>btn.onclick=()=>{ if(btn.disabled||btn.classList.contains('disabled')) return; if(btn.dataset.screen==='dashboard' && project){ if(confirm('Exit current project and go back to Dashboard?')) exitProject(); return; } go(btn.dataset.screen); });
+  byId('dashboardNewBtn').onclick=()=>{ draftProject=defaultProject(); bindDraftFields(); go('project'); };
+  ['dashboardSearch','dashboardStatusFilter','dashboardSort'].forEach(id=>{ const el=byId(id); if(el) el.oninput=el.onchange=renderSavedProjects; });
+  byId('toggleSidebarBtn').onclick=()=>{ appSettings.defaultSidebarState = appSettings.defaultSidebarState==='collapsed'?'expanded':'collapsed'; saveAppSettings(); applyLayoutState(); };
+  byId('createProjectBtn').onclick=createProjectFromSetup; if(byId('loadDefaultTermsBtn')) byId('loadDefaultTermsBtn').onclick=loadDefaultTermsIntoDraft; if(byId('appendClauseBtn')) byId('appendClauseBtn').onclick=()=>{ const sel=byId('projectClauseSelect'); const lib=currentClauseLibrary(); const found=lib[Number(sel?.value||-1)]; if(!found) return alert('Select a clause first.'); const ta=byId('projectTerms'); ta.value = (ta.value.trim()? ta.value.trim()+'\n\n':'') + found.text; if(project) project.terms=ta.value; else draftProject.terms=ta.value; markDirty(); }; byId('saveProjectBtn').onclick=saveProjectToLibrary; byId('exitProjectBtn').onclick=exitProject; byId('addItemBtn').onclick=addItem; byId('duplicateItemBtn').onclick=duplicateItem; byId('addEstimateItemBtn').onclick=addItem; byId('duplicateEstimateItemBtn').onclick=duplicateItem; byId('refreshBoqBtn').onclick=renderBoq; if(byId('addPaymentBtn')) byId('addPaymentBtn').onclick=addPayment; if(byId('printReceiptBtn')) byId('printReceiptBtn').onclick=printSelectedReceipt; const toggleLive=()=>{ liveCollapsed=!liveCollapsed; appSettings.defaultLiveTotalsState=liveCollapsed?'collapsed':'expanded'; saveAppSettings(); applyLayoutState(); }; byId('toggleLiveTotalsBtn').onclick=toggleLive; if(byId('toggleEstimateTotalsBtn')) byId('toggleEstimateTotalsBtn').onclick=toggleLive;
+  byId('openSheetBtn').onclick=()=>{ if(appSettings.sheetUrl) window.open(appSettings.sheetUrl,'_blank'); else alert('Add your Google Sheet URL first in Settings.'); };
+  byId('openMaterialsBtn').onclick=()=>{ if(appSettings.sheetUrl) window.open(appSettings.sheetUrl + '#gid=0','_blank'); else alert('Add your Google Sheet URL first in Settings.'); };
+  byId('openAccessoriesBtn').onclick=()=>{ if(appSettings.sheetUrl) window.open(appSettings.sheetUrl + '#gid=0','_blank'); else alert('Add your Google Sheet URL first in Settings.'); };
+  byId('openQuickSettingsBtn').onclick=()=>{ if(appSettings.sheetUrl) window.open(appSettings.sheetUrl + '#gid=0','_blank'); else alert('Add your Google Sheet URL first in Settings.'); };
+  if(byId('pullMasterDataBtn')) byId('pullMasterDataBtn').onclick=pullMasterData;
+  if(byId('pushProjectBtn')) byId('pushProjectBtn').onclick=pushCurrentProjectToSheet;
+  if(byId('pullProjectsBtn')) byId('pullProjectsBtn').onclick=pullProjectsFromSheet;
+  document.querySelectorAll('[data-settings-panel]').forEach(btn=>btn.onclick=()=>{ document.querySelectorAll('.settings-nav-btn').forEach(x=>x.classList.remove('active')); document.querySelectorAll('.settings-panel').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); const panel=byId('settings-panel-'+btn.dataset.settingsPanel); if(panel) panel.classList.add('active'); });
+  byId('duplicateProjectBtn').onclick=()=>{ if(!project) return; const copy=deepCopy(project); copy.id=uid('PROJ'); copy.quoteNo=`${project.quoteNo}-R${num(project.revisionNo)+1}`; copy.revisionNo=num(project.revisionNo)+1; project=copy; activeItemId=project.items[0]?.id||null; markDirty(); setDraftFromProject(); render(); };
+  byId('topPricingMode').onchange=()=>{ if(!project) return; project.pricingMode=byId('topPricingMode').value; draftProject.pricingMode=project.pricingMode; markDirty(); render(); if(project.pricingMode==='estimate') go('quick'); };
+  byId('printSelectedBtn').onclick=printSelectedForm; byId('printCurrentBtn').onclick=()=>{ go('print'); printSelectedForm(); };
+  document.querySelectorAll('input[name="printMode"]').forEach(r=>r.onchange=renderPrint);
+  window.addEventListener('beforeunload',e=>{ if(dirty&&project){ e.preventDefault(); e.returnValue=''; persistActiveProject(); } });
+
+  const loaded=loadActiveProject(); if(loaded){ project=loaded; activeItemId=project.items[0]?.id||null; setDraftFromProject(); markDirty(false); } else { bindDraftFields(); }
+  render();
+})();
+</script>
+</body>
+</html>
